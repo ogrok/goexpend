@@ -9,8 +9,8 @@ func main() {
 	// first deal with args
 	args := os.Args
 
-	if len(args) <= 1 {
-		showHelpTextAndExit()
+	if len(args) == 1 {
+		// execute current default function
 	}
 
 	switch args[1] {
@@ -54,7 +54,8 @@ func main() {
 	case "report":
 		// run report intended for viewing, on the current month
 	default:
-		// run quick-default behavior (which ought to be configurable)
+		// invalid argument
+		showHelpTextAndExit()
 	}
 }
 

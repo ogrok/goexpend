@@ -35,7 +35,7 @@ To summarize:
     
 ### Commands
 
-* `goex` (no argument) - execute default (default initially is `goex report`)
+* `goex` (no argument) - shows a report related to the current month
 * `goex init` - create initial empty budget and config files in same directory
 * `goex add` - create new budget item in current month with syntax `name amount`
     * optional flags:
@@ -63,7 +63,6 @@ To summarize:
     * `goex month close` closes the current month, preventing changes to realized amounts until month is reopened
     * `goex month reset` asks for confirmation and then returns realized amounts for the current month to 0.
 * `goex all` lists all budgeted items with details
-* `goex report` shows a report related to the current month 
 
 ## Upcoming Features
 Project is WIP and very little functionality exists. Once above spec is realized, I anticipate implementing the following:
