@@ -38,19 +38,21 @@ func main() {
 	case "month":
 		// sub-switch related to month state
 		// case "open":
-			// open current month (to allow changes until closed)
+			// open current month (to allow changes in realized amounts until closed)
 		// case "close":
-			// close current month (to not allow further changes until opened)
+			// close current month (to not allow further changes of realized amounts)
 		// case "reset":
-			// reset existing month (set all actual values in current month to zero)
+			// reset current month (set all realized values in current month to zero)
+		// case "change":
+			// change current month
 		// default:
 			// return current month for clarity
 
 	// reports and viewing
 	case "all":
-		// list all budget items (name, amount, realized amount)
+		// list all budget items (name, amount, realized amount, category)
 	case "report":
-		// run report intended for viewing
+		// run report intended for viewing, on the current month
 	default:
 		// run quick-default behavior (which ought to be configurable)
 	}
