@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/adaminoue/goexpend/src/util"
 	"os"
 )
 
@@ -15,7 +16,7 @@ func main() {
 
 	switch args[1] {
 	case "init":
-		err := initialize()
+		err := util.Initialize()
 
 		if err != nil {
 			fmt.Printf(err.Error() + "\n")
