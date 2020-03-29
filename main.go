@@ -25,7 +25,7 @@ func main() {
 
 	// adding and removing entire budget items
 	case "add": // add new budget item
-		
+
 	case "delete":
 		// delete budget item
 

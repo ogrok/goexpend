@@ -15,7 +15,7 @@ Names and categories are user-defined.
 ### Commands
 
 * `goex` (no argument) - shows a report related to the current month
-* `goex init` - create initial empty budget and config files in same directory
+* `goex init` - create initial empty budget and log files in same directory
 * `goex add` - create new budget item in current month with syntax `name amount`, e.g. `goex add rent 1000`
     * optional flags:
         * `-c category`
