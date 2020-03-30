@@ -68,15 +68,64 @@ func main() {
 
 	// change state of existing budget items
 	case "modify": // edit accrued amount
-		if len(args) < 3 {
+		if len(args) < 4 {
 			ShowErrorTextOfSomeKindAndExit() // no changes specified
 		}
 
-		// TODO continue building out modify logic
-		// modifyCommand := flag.NewFlagSet("modify", flag.ExitOnError)
+		modifyId, err := strconv.ParseInt(args[2], 10, 0)
 
-	case "accrue":
-		// TODO build out accrue function logic
+		if err != nil {
+			ShowErrorTextOfSomeKindAndExit() // invalid id for modification
+		}
+
+		modifyCommand := flag.NewFlagSet("modify", flag.ExitOnError)
+		amountFlag := modifyCommand.Float64("a", 0, "Accrued amount of budget item (zero-value is ignored)")
+		categoryFlag := modifyCommand.String("c", "", "Category of budget item")
+		descriptionFlag := modifyCommand.String("d", "", "Description of budget item")
+		nameFlag := modifyCommand.String("n", "", "Name of budget item")
+		realizedFlag := modifyCommand.Float64("r", 0, "Realized amount associated with budget item")
+
+		err = modifyCommand.Parse(args[3:])
+
+		// need to specifically check whether -r is used bc we want to allow setting realized value to 0;
+		// default value is therefore invalid null case
+		var realizedEdit = false
+
+		for _, arg := range args {
+			if arg == "-r" || arg == "--r" {
+				realizedEdit = true
+			}
+		}
+
+		if err != nil {
+			fmt.Printf(err.Error() + "\n")
+			os.Exit(1)
+		}
+
+		if modifyCommand.Parsed() {
+			modify(int(modifyId), *amountFlag, *categoryFlag, *descriptionFlag, *nameFlag, realizedEdit, *realizedFlag)
+		} else {
+			ShowErrorTextOfSomeKindAndExit() // failed to parse args for modify command
+		}
+
+	case "accrue": // add to accrued amount (or subtract from with negative number)
+		if len(args) != 4 {
+			ShowErrorTextOfSomeKindAndExit() // no flags allowed in accrue command
+		}
+
+		accrueId, err := strconv.ParseInt(args[2], 10, 0)
+
+		if err != nil {
+			ShowErrorTextOfSomeKindAndExit() // invalid id for accrual
+		}
+
+		accrueAmt, err := strconv.ParseFloat(args[3], 32)
+
+		if err != nil {
+			ShowErrorTextOfSomeKindAndExit() // invalid amount for accrual
+		}
+
+		accrue(int(accrueId), accrueAmt)
 	case "realize": // add to actual amount (or subtract from with negative number)
 		if len(args) != 4 {
 			ShowErrorTextOfSomeKindAndExit() // no flags allowed in realize command
@@ -85,13 +134,13 @@ func main() {
 		realizeId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id for deletion
+			ShowErrorTextOfSomeKindAndExit() // invalid id for realization
 		}
 
 		realizeAmt, err := strconv.ParseFloat(args[3], 32)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id for deletion
+			ShowErrorTextOfSomeKindAndExit() // invalid amount for realization
 		}
 
 		realize(int(realizeId), realizeAmt)
@@ -158,6 +207,11 @@ func del(itemId int)  {
 }
 
 // TODO build out function
+func accrue(itemId int, amount float64) {
+	fmt.Printf("accrue function call successful")
+}
+
+// TODO build out function
 func realize(itemId int, amount float64) {
 	return
 }
@@ -174,5 +228,10 @@ func report() {
 
 // TODO build out function
 func info(itemId int) {
+	return
+}
+
+// TODO build out function
+func modify(itemId int, amount float64, category string, description string, name string, realizedEdit bool, realizedAmount float64) {
 	return
 }

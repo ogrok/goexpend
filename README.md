@@ -27,12 +27,13 @@ Names and categories are user-defined.
         * `-r recurrence` (defaults to monthly)
 * `goex delete` - delete budget item with ID passed as argument, e.g. `goex delete 3`
 * `goex modify` - modify budget item with ID and properties passed as flags, e.g. `goex modify 4 -a 24.4`
-    * `-a` / `--accrued` / `--amount` - amount
-    * `-c` / `--category` - category
-    * `--mutable` - mutable
-    * `-n` / `--name` - name
-    * `-r` / `--realized` - realized amount
-    * `--recur` - recurrence
+    * `-a` - amount
+    * `-c` - category
+    * `-d` - description
+    * `-n` - name
+    * `-r` - realized amount
+    * `mutable` and `recurrence` characteristics cannot be modified. To edit these, delete and recreate the budget item
+    * all edits affect current month and future months 
 * `goex accrue` - accrue additional amount of budget item (passed by id) for the current month, e.g. `goex accrue 4 -a 10.83`
     * does not affect future months
 * `goex realize` - realize amount of budget item (passed by id) for the current month, e.g. `goex realize 4 10.83`
