@@ -67,13 +67,38 @@ func main() {
 		del(int(deleteId))
 
 	// change state of existing budget items
-	case "modify":
-		// edit accrued amount
-	case "realize":
-		// edit actual amount
+	case "modify": // edit accrued amount
+		if len(args) < 3 {
+			ShowErrorTextOfSomeKindAndExit() // no changes specified
+		}
+
+		// TODO continue building out modify logic
+		// modifyCommand := flag.NewFlagSet("modify", flag.ExitOnError)
+
+	case "accrue":
+		// TODO build out accrue function logic
+	case "realize": // add to actual amount (or subtract from with negative number)
+		if len(args) != 4 {
+			ShowErrorTextOfSomeKindAndExit() // no flags allowed in realize command
+		}
+
+		realizeId, err := strconv.ParseInt(args[2], 10, 0)
+
+		if err != nil {
+			ShowErrorTextOfSomeKindAndExit() // invalid id for deletion
+		}
+
+		realizeAmt, err := strconv.ParseFloat(args[3], 32)
+
+		if err != nil {
+			ShowErrorTextOfSomeKindAndExit() // invalid id for deletion
+		}
+
+		realize(int(realizeId), realizeAmt)
 
 	// view and change month state
 	case "month":
+		// TODO build out month sub-function calls and handling
 		// sub-switch related to month state
 		// case "open":
 			// open current month (to allow changes in realized amounts until closed)
@@ -87,13 +112,31 @@ func main() {
 			// return current month for clarity
 
 	// reports and viewing
-	case "all":
-		// list all budget items (name, amount, realized amount, category)
-	case "report":
-		// run report intended for viewing, on the current month
+	case "info": // list info for one specific budget item
+		if len(args) != 3 {
+			ShowErrorTextOfSomeKindAndExit() // no flags allowed in info command
+		}
+
+		infoId, err := strconv.ParseInt(args[2], 10, 0)
+
+		if err != nil {
+			ShowErrorTextOfSomeKindAndExit() // invalid id
+		}
+
+		info(int(infoId))
+
+	case "all": // list all budget items (name, amount, realized amount, category)
+		if len(args) != 2 {
+			ShowErrorTextOfSomeKindAndExit() // no args allowed in all command
+		}
+		all()
+	case "report": // run report intended for viewing, on the current month
+		if len(args) != 2 {
+			ShowErrorTextOfSomeKindAndExit() // no args allowed in report command
+		}
+		report()
 	default:
-		// invalid argument
-		ShowErrorTextOfSomeKindAndExit()
+		ShowErrorTextOfSomeKindAndExit() // invalid command
 	}
 }
 
@@ -104,11 +147,32 @@ func ShowErrorTextOfSomeKindAndExit() {
 	os.Exit(1)
 }
 
+// TODO build out function
 func add(name string, amount float64, category string, description string, mutable bool, recurrence string) {
 	return
 }
 
+// TODO build out function
 func del(itemId int)  {
 	return
 }
 
+// TODO build out function
+func realize(itemId int, amount float64) {
+	return
+}
+
+// TODO build out function
+func all() {
+	return
+}
+
+// TODO build out function
+func report() {
+	return
+}
+
+// TODO build out function
+func info(itemId int) {
+	return
+}

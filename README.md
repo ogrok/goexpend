@@ -26,14 +26,14 @@ Names and categories are user-defined.
         * `-m mutable` (defaults to true)
         * `-r recurrence` (defaults to monthly)
 * `goex delete` - delete budget item with ID passed as argument, e.g. `goex delete 3`
-* `goex modify` - modify budget item with ID and properties passed as flags, e.g. `goex modify -i 4 -a 24.4`
+* `goex modify` - modify budget item with ID and properties passed as flags, e.g. `goex modify 4 -a 24.4`
     * `-a` / `--accrued` / `--amount` - amount
     * `-c` / `--category` - category
     * `--mutable` - mutable
     * `-n` / `--name` - name
     * `-r` / `--realized` - realized amount
     * `--recur` - recurrence
-* `goex accrue` - accrue additional amount of budget item (passed by id) for the current month, e.g. `goex accrue -i 4 -a 10.83`
+* `goex accrue` - accrue additional amount of budget item (passed by id) for the current month, e.g. `goex accrue 4 -a 10.83`
     * does not affect future months
 * `goex realize` - realize amount of budget item (passed by id) for the current month, e.g. `goex realize 4 10.83`
     * negative amounts are possible and will reduce realized amount
@@ -43,6 +43,7 @@ Names and categories are user-defined.
     * `goex month close` asks for confirmation and then closes the current month, permanently logging the month and resetting to the current month
     * `goex month reset` asks for confirmation and then updates current month based on actual current time. No logs are created.
         * designed to reset app after a period of non-use, or for testing purposes
+* `goex info` lists details for a specific budget item (by id), e.g. `goex info 4`
 * `goex all` lists all budgeted items with details
 * `goex purge` completely deletes all logs and then executes `goex month reset`, essentially removing all state from the application. 
 

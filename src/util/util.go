@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"unicode"
 )
 
 const dir = "/.goexpend"
@@ -84,4 +85,13 @@ func GetLogDataLoc() string {
 		userHomeDir = GetHomeDir()
 	}
 	return userHomeDir + logData
+}
+
+func isAlphanumeric(s string) bool {
+	for _, v := range s {
+		if !unicode.IsLetter(v) || !unicode.IsNumber(v) {
+			return false
+		}
+	}
+	return true
 }
