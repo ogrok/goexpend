@@ -16,21 +16,24 @@ Names and categories are user-defined.
 
 * `goex` (no argument) - shows a report related to the current month
 * `goex init` - create initial empty budget and log files in same directory
-* `goex add` - create new budget item in current month with syntax `name amount`, e.g. `goex add rent 1000`
+* `goex add` - create new budget item in current month with syntax `-n name -a amount`, e.g. `goex add -n rent -a 1000`
+    * required flags:
+        * `-n name`
+        * `-a amount`
     * optional flags:
         * `-c category`
         * `-d description`
         * `-m mutable` (defaults to true)
         * `-r recurrence` (defaults to monthly)
 * `goex delete` - delete budget item with ID passed as argument, e.g. `goex delete 3`
-* `goex modify` - modify budget item with ID passed as argument and properties passed as flags:
+* `goex modify` - modify budget item with ID and properties passed as flags, e.g. `goex modify -i 4 -a 24.4`
     * `-a` / `--accrued` / `--amount` - amount
     * `-c` / `--category` - category
     * `--mutable` - mutable
     * `-n` / `--name` - name
     * `-r` / `--realized` - realized amount
     * `--recur` - recurrence
-* `goex accrue` - accrue additional amount of budget item (passed by id) for the current month, e.g. `goex accrue 4 10.83`
+* `goex accrue` - accrue additional amount of budget item (passed by id) for the current month, e.g. `goex accrue -i 4 -a 10.83`
     * does not affect future months
 * `goex realize` - realize amount of budget item (passed by id) for the current month, e.g. `goex realize 4 10.83`
     * negative amounts are possible and will reduce realized amount

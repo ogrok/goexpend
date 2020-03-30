@@ -1,7 +1,7 @@
 package models
 
 type ItemTemplate struct {
-	ID              int     `json:"id"`               // one-indexed
+	ID              int     `json:"id"`               // one-indexed; user does not interact with this
 	Name            string  `json:"name"`
 	Category        string  `json:"category"`
 	Amount          float64 `json:"amount"`
