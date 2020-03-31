@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
 )
 
-func WriteNewTemplate(item *models.ItemTemplate) error {
+func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 	// first validate recurrence input
 	if item.Recurrence != "yearly" {
 		item.RecurrenceMonth = 0
@@ -40,14 +39,14 @@ func WriteNewTemplate(item *models.ItemTemplate) error {
 	}
 
 	var newFileContents []byte
-	var templates []models.ItemTemplate
+	var templates []ItemTemplate
 
 	if len(file) != 0 {
 		err = json.Unmarshal(file, &templates)
 
 		// single-objects need to be unmarshaled into single-obj var then appended to array
 		if err != nil {
-			var singleTemplate models.ItemTemplate
+			var singleTemplate ItemTemplate
 			err = json.Unmarshal(file, &singleTemplate)
 
 			if err != nil {
@@ -80,10 +79,12 @@ func WriteNewTemplate(item *models.ItemTemplate) error {
 		newFileContents, err = json.Marshal(templates)
 	}
 
-	err = WriteNewMonthItem(item)
+	if alsoMonthItem {
+		err = WriteNewMonthItem(item, 0)
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	err = ioutil.WriteFile(GetTemplateDataLoc(), newFileContents, os.ModePerm)
@@ -100,13 +101,13 @@ func WriteNewTemplate(item *models.ItemTemplate) error {
 }
 
 // create new item in active month concurrently with new template
-func WriteNewMonthItem(input *models.ItemTemplate) error {
-	monthItem := models.MonthItem{
+func WriteNewMonthItem(input *ItemTemplate, realizedAmount int) error {
+	monthItem := MonthItem{
 		ID:       input.ID,
 		Name:     input.Name,
 		Category: input.Category,
 		Accrued:  input.Amount,
-		Realized: 0,
+		Realized: realizedAmount,
 		Mutable:  input.Mutable,
 	}
 
@@ -117,14 +118,14 @@ func WriteNewMonthItem(input *models.ItemTemplate) error {
 	}
 
 	var newFileContents []byte
-	var activeItems []models.MonthItem
+	var activeItems []MonthItem
 
 	if len(file) != 0 {
 		err = json.Unmarshal(file, &activeItems)
 
 		// single-objects need to be unmarshaled into single-obj var then appended to array
 		if err != nil {
-			var singleTemplate models.MonthItem
+			var singleTemplate MonthItem
 			err = json.Unmarshal(file, &singleTemplate)
 
 			if err != nil {

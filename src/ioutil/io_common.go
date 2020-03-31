@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"log"
 	"os"
@@ -134,7 +133,7 @@ func GetConfigDataLoc() string {
 }
 
 func GetNextSequentialId() (int, error) {
-	var templates []models.ItemTemplate
+	var templates []ItemTemplate
 
 	file, err := ioutil.ReadFile(GetTemplateDataLoc())
 
@@ -149,7 +148,7 @@ func GetNextSequentialId() (int, error) {
 	err = json.Unmarshal(file, &templates)
 
 	if err != nil {
-		var singleTemplate models.ItemTemplate
+		var singleTemplate ItemTemplate
 		err = json.Unmarshal(file, &singleTemplate)
 
 		if err != nil {
@@ -159,7 +158,7 @@ func GetNextSequentialId() (int, error) {
 		templates = append(templates, singleTemplate)
 	}
 
-	var activeItems []models.MonthItem
+	var activeItems []MonthItem
 
 	file, err = ioutil.ReadFile(GetActiveDataLoc())
 
@@ -174,7 +173,7 @@ func GetNextSequentialId() (int, error) {
 	err = json.Unmarshal(file, &activeItems)
 
 	if err != nil {
-		var singleMonthItem models.MonthItem
+		var singleMonthItem MonthItem
 		err = json.Unmarshal(file, &singleMonthItem)
 
 		if err != nil {
@@ -212,8 +211,8 @@ func GetNextSequentialId() (int, error) {
 	}
 }
 
-func GetAllTemplates() ([]models.ItemTemplate, error) {
-	var result []models.ItemTemplate
+func GetAllTemplates() ([]ItemTemplate, error) {
+	var result []ItemTemplate
 
 	file, err := ioutil.ReadFile(GetTemplateDataLoc())
 
@@ -230,8 +229,8 @@ func GetAllTemplates() ([]models.ItemTemplate, error) {
 	return result, nil
 }
 
-func GetAllActiveItems() ([]models.MonthItem, error) {
-	var result []models.MonthItem
+func GetAllActiveItems() ([]MonthItem, error) {
+	var result []MonthItem
 
 	file, err := ioutil.ReadFile(GetActiveDataLoc())
 
@@ -248,11 +247,11 @@ func GetAllActiveItems() ([]models.MonthItem, error) {
 	return result, nil
 }
 
-func GetSpecificTemplate(id int) (models.ItemTemplate, error) {
+func GetSpecificTemplate(id int) (ItemTemplate, error) {
 	all, err := GetAllTemplates()
 
 	if err != nil {
-		return models.ItemTemplate{}, err
+		return ItemTemplate{}, err
 	}
 
 	for _, v := range all {
@@ -261,14 +260,14 @@ func GetSpecificTemplate(id int) (models.ItemTemplate, error) {
 		}
 	}
 
-	return models.ItemTemplate{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
+	return ItemTemplate{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
 }
 
-func GetSpecificActiveItem(id int) (models.MonthItem, error) {
+func GetSpecificActiveItem(id int) (MonthItem, error) {
 	all, err := GetAllActiveItems()
 
 	if err != nil {
-		return models.MonthItem{}, err
+		return MonthItem{}, err
 	}
 
 	for _, v := range all {
@@ -277,5 +276,5 @@ func GetSpecificActiveItem(id int) (models.MonthItem, error) {
 		}
 	}
 
-	return models.MonthItem{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
+	return MonthItem{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
 }

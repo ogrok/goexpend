@@ -2,7 +2,6 @@ package ioutil
 
 import (
 	"encoding/json"
-	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"time"
@@ -38,7 +37,7 @@ func endOfCurrentMonth() int {
 func saveInitialConfig() error {
 	eom := endOfCurrentMonth()
 
-	initialConfig := models.Config{
+	initialConfig := Config{
 		CurrentMonth:  int(time.Now().Month()),
 		CurrentYear:   time.Now().Year(),
 		MonthEnd:      eom,

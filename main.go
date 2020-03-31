@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/adaminoue/goexpend/src/models"
 	"github.com/adaminoue/goexpend/src/ioutil"
 	"os"
 	"strconv"
+	"time"
 )
 
 // parsing and validation of input occurs in main.
@@ -45,7 +45,7 @@ func main() {
 	case "add": // add new budget item
 		addCommand := flag.NewFlagSet("add", flag.ExitOnError)
 		nameFlag := addCommand.String("n", "", "Name of new budget item")
-		amountFlag := addCommand.Float64("a", 0.0, "Amount of new budget item")
+		amountFlag := addCommand.Int("a", 0.0, "Amount of new budget item")
 
 		categoryFlag := addCommand.String("c", "", "Category of new budget item")
 		descriptionFlag := addCommand.String("d", "", "Description of new budget item")
@@ -71,7 +71,7 @@ func main() {
 
 	case "delete": // delete budget item
 		if len(args) != 3 {
-			cleanError("No flags allowed in deletion command")
+			cleanError("Invalid input")
 		}
 
 		deleteId, err := strconv.ParseInt(args[2], 10, 0)
@@ -95,11 +95,11 @@ func main() {
 		}
 
 		modifyCommand := flag.NewFlagSet("modify", flag.ExitOnError)
-		amountFlag := modifyCommand.Float64("a", 0, "Accrued amount of budget item (zero-value is ignored)")
+		amountFlag := modifyCommand.Int("a", 0, "Accrued amount of budget item (zero-value is ignored)")
 		categoryFlag := modifyCommand.String("c", "", "Category of budget item")
 		descriptionFlag := modifyCommand.String("d", "", "Description of budget item")
 		nameFlag := modifyCommand.String("n", "", "Name of budget item")
-		realizedFlag := modifyCommand.Float64("r", 0, "Realized amount associated with budget item")
+		realizedFlag := modifyCommand.Int("r", 0, "Realized amount associated with budget item")
 
 		err = modifyCommand.Parse(args[3:])
 
@@ -126,7 +126,7 @@ func main() {
 
 	case "accrue": // add to accrued amount (or subtract from with negative number)
 		if len(args) != 4 {
-			cleanError("No flags allowed in accrue command")
+			cleanError("Invalid input")
 		}
 
 		accrueId, err := strconv.ParseInt(args[2], 10, 0)
@@ -135,7 +135,7 @@ func main() {
 			cleanError("Invalid ID")
 		}
 
-		accrueAmt, err := strconv.ParseFloat(args[3], 32)
+		accrueAmt, err := strconv.Atoi(args[3])
 
 		if err != nil {
 			cleanError("Invalid amount")
@@ -153,7 +153,7 @@ func main() {
 			cleanError("Invalid ID")
 		}
 
-		realizeAmt, err := strconv.ParseFloat(args[3], 32)
+		realizeAmt, err := strconv.Atoi(args[3])
 
 		if err != nil {
 			cleanError("Invalid amount")
@@ -221,25 +221,24 @@ func cleanError(input string) {
 	os.Exit(1)
 }
 
-func add(name string, amount float64, category string, description string, mutable bool, recurrence string) {
-	newItem := models.ItemTemplate{
+func add(name string, amount int, category string, description string, mutable bool, recurrence string) {
+	newItem := ioutil.ItemTemplate{
 		ID:              0,
 		Name:            name,
 		Category:        category,
+		Description:     description,
 		Amount:          amount,
 		Recurrence:      recurrence,
 		RecurrenceMonth: showCurrentMonth(),
 		Mutable:         mutable,
 	}
 
-	err := ioutil.WriteNewTemplate(&newItem)
+	err := ioutil.WriteNewTemplate(&newItem, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
 		os.Exit(1)
 	}
-
-	// TODO also need to write new active item. function should take template as input and nothing else
 }
 
 func del(itemId int)  {
@@ -251,14 +250,51 @@ func del(itemId int)  {
 	}
 }
 
-// TODO build out function
-func accrue(itemId int, amount float64) {
-	fmt.Printf("accrue function call successful")
+func accrue(itemId int, amount int) {
+	currentItem, err := ioutil.GetSpecificActiveItem(itemId)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	var mod = ioutil.ModTemplate{
+		ID:          itemId,
+		Amount:      currentItem.Accrued + amount,
+	}
+
+	err = ioutil.ModifyItem(mod, false, false)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 }
 
 // TODO build out function
-func realize(itemId int, amount float64) {
-	return
+func realize(itemId int, amount int) {
+	currentItem, err := ioutil.GetSpecificActiveItem(itemId)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	var mod = ioutil.ModTemplate{
+		ID:          itemId,
+		Realized:    currentItem.Realized + amount,
+	}
+
+	err = ioutil.ModifyItem(mod, true, false)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+
+
+	println("Realized amount of " + strconv.Itoa(amount))
 }
 
 // TODO build out function
@@ -280,9 +316,22 @@ func info(itemId int) {
 	return
 }
 
-// TODO build out function
-func modify(itemId int, amount float64, category string, description string, name string, realizedEdit bool, realizedAmount float64) {
-	return
+func modify(itemId int, amount int, category string, description string, name string, realizedEdit bool, realizedAmount int) {
+	var modTemplate = ioutil.ModTemplate{
+		ID:          itemId,
+		Amount:      amount,
+		Category:    category,
+		Description: description,
+		Name:        name,
+		Realized:    realizedAmount,
+	}
+
+	err := ioutil.ModifyItem(modTemplate, realizedEdit, true)
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
 }
 
 // TODO build out this function
@@ -303,9 +352,8 @@ func reset(force bool) {
 	// rest of function
 }
 
-// TODO build out this function
 func showCurrentMonth() int {
 	// return current month for clarity, both printed and in return value. if non-current, ask to close it. ask daily, not every time
 	// json required for this somewhere has current month as string and timestamp as "ask again after"
-	return 0
+	return int(time.Now().Month())
 }

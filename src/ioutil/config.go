@@ -1,4 +1,4 @@
-package models
+package ioutil
 
 type Config struct {
 	CurrentMonth  int `json:"current_month"`
