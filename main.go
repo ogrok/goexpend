@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"github.com/adaminoue/goexpend/src/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -144,7 +146,7 @@ func main() {
 		accrue(int(accrueId), accrueAmt)
 	case "realize": // add to actual amount (or subtract from with negative number)
 		if len(args) != 4 {
-			cleanError("No flags allowed in realize command")
+			cleanError("Invalid input")
 		}
 
 		realizeId, err := strconv.ParseInt(args[2], 10, 0)
@@ -165,6 +167,7 @@ func main() {
 	case "month":
 		if len(args) == 2 {
 			_ = showCurrentMonth()
+			os.Exit(0)
 		}
 
 		// sub-switch on
@@ -271,7 +274,6 @@ func accrue(itemId int, amount int) {
 	}
 }
 
-// TODO build out function
 func realize(itemId int, amount int) {
 	currentItem, err := ioutil.GetSpecificActiveItem(itemId)
 
@@ -313,7 +315,54 @@ func report() {
 
 // TODO build out function
 func info(itemId int) {
-	return
+	template, err := ioutil.GetSpecificTemplate(itemId)
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
+
+	activeItem, err := ioutil.GetSpecificActiveItem(itemId)
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
+
+	viewmodel := ioutil.ViewmodelInfo{
+		ID:              template.ID,
+		Name:            template.Name,
+		Category:        template.Category,
+		Description:     template.Description,
+		CurrentAccrued:  activeItem.Accrued,
+		Realized:        activeItem.Realized,
+		Mutable:         template.Mutable,
+		Amount:          template.Amount,
+		Recurrence:      template.Recurrence,
+		RecurrenceMonth: template.RecurrenceMonth,
+	}
+
+	var recurrenceDesc string
+
+	if viewmodel.Recurrence == "yearly" {
+		recurrenceDesc = "yearly in " + strings.ToLower(time.Month(viewmodel.RecurrenceMonth).String())
+	} else if viewmodel.Recurrence == "monthly" {
+		recurrenceDesc = "monthly"
+	} else if viewmodel.Recurrence == "none" {
+		recurrenceDesc = "none"
+	}
+
+	fmt.Printf(""+
+		"\nName:                " + viewmodel.Name +
+		"\nID:                  " + strconv.Itoa(viewmodel.ID) +
+		"\nCategory:            " + viewmodel.Category +
+		"\nDescription:         " + viewmodel.Description +
+		"\nRegular Amount:      " + strconv.Itoa(viewmodel.Amount) +
+		"\nCurrent Accrual:     " + strconv.Itoa(viewmodel.CurrentAccrued) +
+		"\nRealized / Remains:  " + strconv.Itoa(viewmodel.Realized) + " / " + strconv.Itoa(viewmodel.Remains()) +
+		"\nMutable:             " + strconv.FormatBool(viewmodel.Mutable) +
+		"\nRecurs:              " + recurrenceDesc +
+		"\n")
 }
 
 func modify(itemId int, amount int, category string, description string, name string, realizedEdit bool, realizedAmount int) {
@@ -346,14 +395,25 @@ func closeMonth(force bool) {
 // TODO build out this function
 func reset(force bool) {
 	if !force {
-		// ask for confirmation and exit if not received
+		userConfirms("reset the active month")
 	}
 
-	// rest of function
+	// do the function
 }
 
 func showCurrentMonth() int {
 	// return current month for clarity, both printed and in return value. if non-current, ask to close it. ask daily, not every time
 	// json required for this somewhere has current month as string and timestamp as "ask again after"
 	return int(time.Now().Month())
+}
+
+func userConfirms(operation string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Are you sure you would like to " + operation + "? [Y/n] ")
+	text, _ := reader.ReadString('\n')
+	if strings.ToUpper(text) == "Y" {
+		return true
+	}
+
+	return false
 }
