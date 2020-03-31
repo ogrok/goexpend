@@ -80,13 +80,88 @@ func WriteNewTemplate(item *models.ItemTemplate) error {
 		newFileContents, err = json.Marshal(templates)
 	}
 
-
-	err = ioutil.WriteFile(GetTemplateDataLoc(), newFileContents, os.ModePerm)
+	err = WriteNewMonthItem(item)
 
 	if err != nil {
 		return err
 	}
 
+	err = ioutil.WriteFile(GetTemplateDataLoc(), newFileContents, os.ModePerm)
+
+	if err != nil {
+		// try to roll back creation of new month item from previous step
+		_ = deleteActiveItem(item.ID)
+
+		return err
+	}
+
 	fmt.Println("Budget item " + strconv.Itoa(actualID) + " created successfully")
+	return nil
+}
+
+// create new item in active month concurrently with new template
+func WriteNewMonthItem(input *models.ItemTemplate) error {
+	monthItem := models.MonthItem{
+		ID:       input.ID,
+		Name:     input.Name,
+		Category: input.Category,
+		Accrued:  input.Amount,
+		Realized: 0,
+		Mutable:  input.Mutable,
+	}
+
+	file, err := ioutil.ReadFile(GetActiveDataLoc())
+
+	if err != nil {
+		return err
+	}
+
+	var newFileContents []byte
+	var activeItems []models.MonthItem
+
+	if len(file) != 0 {
+		err = json.Unmarshal(file, &activeItems)
+
+		// single-objects need to be unmarshaled into single-obj var then appended to array
+		if err != nil {
+			var singleTemplate models.MonthItem
+			err = json.Unmarshal(file, &singleTemplate)
+
+			if err != nil {
+				return err
+			}
+
+			activeItems = append(activeItems, singleTemplate)
+		}
+
+		activeItems = append(activeItems, monthItem)
+
+		for k, v := range activeItems {
+			for a, b := range activeItems {
+				if a != k && v.ID == b.ID {
+					return errors.New("ID conflict ("+string(v.ID)+"). No new item created")
+				}
+			}
+		}
+
+		sort.Slice(activeItems, func(i, j int) bool { return activeItems[i].ID < activeItems[j].ID })
+
+		newFileContents, err = json.Marshal(activeItems)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		activeItems = append(activeItems, monthItem)
+
+		newFileContents, err = json.Marshal(activeItems)
+	}
+
+	err = ioutil.WriteFile(GetActiveDataLoc(), newFileContents, os.ModePerm)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

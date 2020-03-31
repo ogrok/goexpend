@@ -1,7 +1,7 @@
 package models
 
 type MonthLog struct {
-	ID       int            `json:"id"`        // one-indexed, common ID
+	ID       int            `json:"id"`        // iterative ID just to keep the list ordinal
 	Month    int            `json:"month"`
 	Year     int            `json:"year"`
 	LogItems []MonthLogItem `json:"log_items"`

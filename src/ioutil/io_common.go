@@ -2,12 +2,14 @@ package ioutil
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
+	"strconv"
 )
 
 const dir = "/.goexpend"
@@ -34,6 +36,10 @@ func Initialize() error {
 		return err
 	}
 
+	blankFile := []byte("[]")
+
+	_ = ioutil.WriteFile(GetActiveDataLoc(), blankFile, os.ModePerm)
+
 	err = file.Close()
 
 	if err != nil {
@@ -42,6 +48,8 @@ func Initialize() error {
 	}
 
 	file, err = os.OpenFile(GetLogDataLoc(), os.O_CREATE, os.ModePerm)
+
+	_ = ioutil.WriteFile(GetLogDataLoc(), blankFile, os.ModePerm)
 
 	if err != nil {
 		return err
@@ -55,6 +63,8 @@ func Initialize() error {
 	}
 
 	file, err = os.OpenFile(GetTemplateDataLoc(), os.O_CREATE, os.ModePerm)
+
+	_ = ioutil.WriteFile(GetTemplateDataLoc(), blankFile, os.ModePerm)
 
 	if err != nil {
 		return err
@@ -93,13 +103,6 @@ func GetHomeDir() string {
 	}
 
 	return userHomeDir
-}
-
-func GetDir() string {
-	if userHomeDir == "" {
-		userHomeDir = GetHomeDir()
-	}
-	return userHomeDir + dir
 }
 
 func GetActiveDataLoc() string {
@@ -156,6 +159,31 @@ func GetNextSequentialId() (int, error) {
 		templates = append(templates, singleTemplate)
 	}
 
+	var activeItems []models.MonthItem
+
+	file, err = ioutil.ReadFile(GetActiveDataLoc())
+
+	if err != nil {
+		return -1, err
+	}
+
+	if len(file) == 0 {
+		return 1, nil
+	}
+
+	err = json.Unmarshal(file, &activeItems)
+
+	if err != nil {
+		var singleMonthItem models.MonthItem
+		err = json.Unmarshal(file, &singleMonthItem)
+
+		if err != nil {
+			return -1, err
+		}
+
+		activeItems = append(activeItems, singleMonthItem)
+	}
+
 	// then find lowest candidate ID not in use and return it
 	candidateId := 1
 
@@ -165,6 +193,14 @@ func GetNextSequentialId() (int, error) {
 		for _, i := range templates {
 			if candidateId == i.ID {
 				goodCandidate = false
+				break
+			}
+		}
+
+		for _, j := range activeItems {
+			if candidateId == j.ID {
+				goodCandidate = false
+				break
 			}
 		}
 
@@ -174,4 +210,72 @@ func GetNextSequentialId() (int, error) {
 			candidateId += 1
 		}
 	}
+}
+
+func GetAllTemplates() ([]models.ItemTemplate, error) {
+	var result []models.ItemTemplate
+
+	file, err := ioutil.ReadFile(GetTemplateDataLoc())
+
+	if err != nil {
+		return result, err
+	}
+
+	err = json.Unmarshal(file, &result)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func GetAllActiveItems() ([]models.MonthItem, error) {
+	var result []models.MonthItem
+
+	file, err := ioutil.ReadFile(GetActiveDataLoc())
+
+	if err != nil {
+		return result, err
+	}
+
+	err = json.Unmarshal(file, &result)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func GetSpecificTemplate(id int) (models.ItemTemplate, error) {
+	all, err := GetAllTemplates()
+
+	if err != nil {
+		return models.ItemTemplate{}, err
+	}
+
+	for _, v := range all {
+		if v.ID == id {
+			return v, nil
+		}
+	}
+
+	return models.ItemTemplate{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
+}
+
+func GetSpecificActiveItem(id int) (models.MonthItem, error) {
+	all, err := GetAllActiveItems()
+
+	if err != nil {
+		return models.MonthItem{}, err
+	}
+
+	for _, v := range all {
+		if v.ID == id {
+			return v, nil
+		}
+	}
+
+	return models.MonthItem{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
 }
