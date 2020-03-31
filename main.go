@@ -238,9 +238,10 @@ func add(name string, amount float64, category string, description string, mutab
 		fmt.Printf(err.Error())
 		os.Exit(1)
 	}
+
+	// TODO also need to write new active item. function should take template as input and nothing else
 }
 
-// TODO build out function
 func del(itemId int)  {
 	err := ioutil.DeleteItem(itemId)
 
