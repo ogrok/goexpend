@@ -104,6 +104,13 @@ func GetHomeDir() string {
 	return userHomeDir
 }
 
+func GetDir() string {
+	if userHomeDir == "" {
+		userHomeDir = GetHomeDir()
+	}
+	return userHomeDir + dir
+}
+
 func GetActiveDataLoc() string {
 	if userHomeDir == "" {
 		userHomeDir = GetHomeDir()

@@ -27,6 +27,15 @@ func main() {
 		}
 	}
 
+	// then check config for whether we are past AskAgainAt
+	config, _ := ioutil.GetConfig()
+
+	if time.Now().Unix() > int64(config.AskAgainAfter) {
+		if askUserToClose() {
+			closeMonth(true)
+		}
+	}
+
 	// then begin processing input
 
 	if len(args) == 1 {
@@ -212,6 +221,19 @@ func main() {
 			cleanError("no arguments allowed in report command")
 		}
 		report()
+
+	case "purge": // remove all data then run init
+		if userConfirms("remove all data and reset goexpend") {
+			err := Purge()
+
+			if err != nil {
+				fmt.Printf(err.Error())
+				os.Exit(1)
+			}
+		} else {
+			fmt.Printf("Purge aborted")
+		}
+
 	default:
 		cleanError("Invalid command")
 	}
@@ -313,7 +335,6 @@ func report() {
 	return
 }
 
-// TODO build out function
 func info(itemId int) {
 	template, err := ioutil.GetSpecificTemplate(itemId)
 
@@ -383,13 +404,24 @@ func modify(itemId int, amount int, category string, description string, name st
 	}
 }
 
-// TODO build out this function
 func closeMonth(force bool) {
-	if !force {
-		// ask for confirmation and exit if not received
+	config, err := ioutil.GetConfig()
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
 	}
 
-	// rest of function
+	if int64(config.MonthEnd) > time.Now().Unix() {
+		println("Error: You cannot close the month until it is over")
+		os.Exit(1)
+	}
+
+	if !force && !userConfirms("close the current month and open the month of " + time.Now().Month().String()) {
+		os.Exit(1)
+	}
+
+	// TODO rest of function that actually closes the month, builds logs, etc.
 }
 
 // TODO build out this function
@@ -411,9 +443,39 @@ func userConfirms(operation string) bool {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Are you sure you would like to " + operation + "? [Y/n] ")
 	text, _ := reader.ReadString('\n')
-	if strings.ToUpper(text) == "Y" {
+	if strings.ToUpper(strings.TrimSpace(text)) == "Y" {
 		return true
 	}
 
 	return false
+}
+
+func askUserToClose() bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Would you like to close the old month and open the budget for the month of "+ time.Now().Month().String() +"? [Y/n] ")
+	text, _ := reader.ReadString('\n')
+	if strings.ToUpper(strings.TrimSpace(text)) == "Y" {
+		return true
+	}
+
+	return false
+}
+
+func Purge() error {
+	dir := ioutil.GetDir()
+
+	err := os.RemoveAll(dir)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Purge complete. Rerunning init...")
+	err = ioutil.Initialize()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
