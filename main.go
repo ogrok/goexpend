@@ -3,23 +3,24 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/adaminoue/goexpend/src/util"
+	"github.com/adaminoue/goexpend/src/models"
+	"github.com/adaminoue/goexpend/src/ioutil"
 	"os"
 	"strconv"
 )
 
 // parsing and validation of input occurs in main.
 // no json is manipulated in main; this is abstracted out to the functions below it
-// see `util` folder for shared functions related to I/O etc.
+// see `ioutil` folder for shared functions related to I/O etc.
 func main() {
 	args := os.Args
 
 	// first check if config exists. force creation if not
-	configExists := util.ConfigExists()
+	configExists := ioutil.ConfigExists()
 
 	if !configExists {
 		if args[1] != "init" {
-			fmt.Printf("Config file does not exist at " + util.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
+			fmt.Printf("Config file does not exist at " + ioutil.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
 			os.Exit(1)
 		}
 	}
@@ -33,7 +34,7 @@ func main() {
 
 	switch args[1] {
 	case "init":
-		err := util.Initialize()
+		err := ioutil.Initialize()
 
 		if err != nil {
 			fmt.Printf(err.Error() + "\n")
@@ -163,7 +164,7 @@ func main() {
 	// view and change month state
 	case "month":
 		if len(args) == 2 {
-			showCurrentMonth()
+			_ = showCurrentMonth()
 		}
 
 		// sub-switch on
@@ -222,7 +223,22 @@ func cleanError(input string) {
 
 // TODO build out function
 func add(name string, amount float64, category string, description string, mutable bool, recurrence string) {
-	return
+	newItem := models.ItemTemplate{
+		ID:              0,
+		Name:            name,
+		Category:        category,
+		Amount:          amount,
+		Recurrence:      recurrence,
+		RecurrenceMonth: showCurrentMonth(),
+		Mutable:         mutable,
+	}
+
+	err := ioutil.WriteNewItem(&newItem)
+
+	if err != nil {
+		fmt.Printf(err.Error())
+		os.Exit(1)
+	}
 }
 
 // TODO build out function
@@ -242,7 +258,7 @@ func realize(itemId int, amount float64) {
 
 // TODO build out function
 func all() {
-	if util.ConfigExists() {
+	if ioutil.ConfigExists() {
 		fmt.Printf("CONFIG EXISTS")
 	} else {
 		fmt.Printf("Config does NOT exist!")
@@ -283,7 +299,8 @@ func reset(force bool) {
 }
 
 // TODO build out this function
-func showCurrentMonth() {
-	// return current month for clarity. if non-current, ask to close it. ask daily, not every time
+func showCurrentMonth() int {
+	// return current month for clarity, both printed and in return value. if non-current, ask to close it. ask daily, not every time
 	// json required for this somewhere has current month as string and timestamp as "ask again after"
+	return 0
 }

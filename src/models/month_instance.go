@@ -7,7 +7,7 @@ type Month struct {
 }
 
 type MonthItem struct {
-	ID         int     `json:"id"`          // one-indexed; user interacts with this id
+	ID         int     `json:"id"`          // one-indexed; common ID
 	Name       string  `json:"name"`
 	Category   string  `json:"category"`
 	InstanceOf int     `json:"instance_of"` // id of parent ItemTemplate

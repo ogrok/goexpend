@@ -1,17 +1,20 @@
-package util
+package ioutil
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/adaminoue/goexpend/src/models"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
-	"unicode"
 )
 
 const dir = "/.goexpend"
 const activeData = dir + "/active.json"
 const logData = dir + "/log.json"
 const configData = dir + "/config.json"
+const templateData = dir + "/template.json"
 
 var userHomeDir string
 
@@ -39,6 +42,19 @@ func Initialize() error {
 	}
 
 	file, err = os.OpenFile(GetLogDataLoc(), os.O_CREATE, os.ModePerm)
+
+	if err != nil {
+		return err
+	}
+
+	err = file.Close()
+
+	if err != nil {
+		fmt.Printf("I/O error. It is possible operation completed. Check manually if " + GetLogDataLoc() + " exists and rerun if needed.")
+		os.Exit(1)
+	}
+
+	file, err = os.OpenFile(GetTemplateDataLoc(), os.O_CREATE, os.ModePerm)
 
 	if err != nil {
 		return err
@@ -100,6 +116,13 @@ func GetLogDataLoc() string {
 	return userHomeDir + logData
 }
 
+func GetTemplateDataLoc() string {
+	if userHomeDir == "" {
+		userHomeDir = GetHomeDir()
+	}
+	return userHomeDir + templateData
+}
+
 func GetConfigDataLoc() string {
 	if userHomeDir == "" {
 		userHomeDir = GetHomeDir()
@@ -107,11 +130,48 @@ func GetConfigDataLoc() string {
 	return userHomeDir + configData
 }
 
-func isAlphanumeric(s string) bool {
-	for _, v := range s {
-		if !unicode.IsLetter(v) || !unicode.IsNumber(v) {
-			return false
+func GetNextSequentialId() (int, error) {
+	var templates []models.ItemTemplate
+
+	file, err := ioutil.ReadFile(GetTemplateDataLoc())
+
+	if err != nil {
+		return -1, err
+	}
+
+	if len(file) == 0 {
+		return 1, nil
+	}
+
+	err = json.Unmarshal(file, &templates)
+
+	if err != nil {
+		var singleTemplate models.ItemTemplate
+		err = json.Unmarshal(file, &singleTemplate)
+
+		if err != nil {
+			return -1, err
+		}
+
+		templates = append(templates, singleTemplate)
+	}
+
+	// then find lowest candidate ID not in use and return it
+	candidateId := 1
+
+	for {
+		goodCandidate := true
+
+		for _, i := range templates {
+			if candidateId == i.ID {
+				goodCandidate = false
+			}
+		}
+
+		if goodCandidate {
+			return candidateId, nil
+		} else {
+			candidateId += 1
 		}
 	}
-	return true
 }
