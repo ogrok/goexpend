@@ -11,6 +11,7 @@ import (
 const dir = "/.goexpend"
 const activeData = dir + "/active.json"
 const logData = dir + "/log.json"
+const configData = dir + "/config.json"
 
 var userHomeDir string
 
@@ -50,7 +51,19 @@ func Initialize() error {
 		os.Exit(1)
 	}
 
-	fmt.Printf("init successful. Program is ready for use!\n")
+	if !ConfigExists() {
+		err = saveInitialConfig()
+
+		if err != nil {
+			fmt.Printf(err.Error()+"\nIt is possible operation completed. Check manually if " + GetLogDataLoc() + " exists and rerun if needed.")
+			os.Exit(1)
+		}
+
+		fmt.Printf("init successful. Program is ready for use!\n")
+	} else {
+		fmt.Printf("Config file already existed at " + GetConfigDataLoc() + ".\nManually remove and run init again to recreate.\n")
+	}
+
 	return nil
 }
 
@@ -85,6 +98,13 @@ func GetLogDataLoc() string {
 		userHomeDir = GetHomeDir()
 	}
 	return userHomeDir + logData
+}
+
+func GetConfigDataLoc() string {
+	if userHomeDir == "" {
+		userHomeDir = GetHomeDir()
+	}
+	return userHomeDir + configData
 }
 
 func isAlphanumeric(s string) bool {

@@ -46,6 +46,7 @@ Names and categories are user-defined.
         * designed to reset app after a period of non-use, or for testing purposes
 * `goex info` lists details for a specific budget item (by id), e.g. `goex info 4`
 * `goex all` lists all budgeted items with details
+* `goex report` lists report intended for regular viewing
 * `goex purge` completely deletes all logs and then executes `goex month reset`, essentially removing all state from the application. 
 
 ## Upcoming Features

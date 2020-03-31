@@ -8,12 +8,27 @@ import (
 	"strconv"
 )
 
+// parsing and validation of input occurs in main.
+// no json is manipulated in main; this is abstracted out to the functions below it
+// see `util` folder for shared functions related to I/O etc.
 func main() {
-	// first deal with args
 	args := os.Args
 
+	// first check if config exists. force creation if not
+	configExists := util.ConfigExists()
+
+	if !configExists {
+		if args[1] != "init" {
+			fmt.Printf("Config file does not exist at " + util.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
+			os.Exit(1)
+		}
+	}
+
+	// then begin processing input
+
 	if len(args) == 1 {
-		// execute current default function
+		// execute current default function. TODO make this configurable
+		report()
 	}
 
 	switch args[1] {
@@ -45,23 +60,23 @@ func main() {
 
 		if addCommand.Parsed() {
 			if *nameFlag == "" || *amountFlag == 0 {
-				ShowErrorTextOfSomeKindAndExit() // no name or amount populated
+				cleanError("Both name and amount required for add command")
 			}
 
 			add(*nameFlag, *amountFlag, *categoryFlag, *descriptionFlag, *mutableFlag, *recurrenceFlag)
 		} else {
-			ShowErrorTextOfSomeKindAndExit() // failed to parse args for add command
+			cleanError("Failed to parse arguments for add command")
 		}
 
 	case "delete": // delete budget item
 		if len(args) != 3 {
-			ShowErrorTextOfSomeKindAndExit() // no flags allowed in deletion command
+			cleanError("No flags allowed in deletion command")
 		}
 
 		deleteId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id for deletion
+			cleanError("Invalid ID for deletion")
 		}
 
 		del(int(deleteId))
@@ -69,13 +84,13 @@ func main() {
 	// change state of existing budget items
 	case "modify": // edit accrued amount
 		if len(args) < 4 {
-			ShowErrorTextOfSomeKindAndExit() // no changes specified
+			cleanError("No modifications specified")
 		}
 
 		modifyId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id for modification
+			cleanError("Invalid ID")
 		}
 
 		modifyCommand := flag.NewFlagSet("modify", flag.ExitOnError)
@@ -105,94 +120,103 @@ func main() {
 		if modifyCommand.Parsed() {
 			modify(int(modifyId), *amountFlag, *categoryFlag, *descriptionFlag, *nameFlag, realizedEdit, *realizedFlag)
 		} else {
-			ShowErrorTextOfSomeKindAndExit() // failed to parse args for modify command
+			cleanError("Failed to parse arguments for modify command")
 		}
 
 	case "accrue": // add to accrued amount (or subtract from with negative number)
 		if len(args) != 4 {
-			ShowErrorTextOfSomeKindAndExit() // no flags allowed in accrue command
+			cleanError("No flags allowed in accrue command")
 		}
 
 		accrueId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id for accrual
+			cleanError("Invalid ID")
 		}
 
 		accrueAmt, err := strconv.ParseFloat(args[3], 32)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid amount for accrual
+			cleanError("Invalid amount")
 		}
 
 		accrue(int(accrueId), accrueAmt)
 	case "realize": // add to actual amount (or subtract from with negative number)
 		if len(args) != 4 {
-			ShowErrorTextOfSomeKindAndExit() // no flags allowed in realize command
+			cleanError("No flags allowed in realize command")
 		}
 
 		realizeId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id for realization
+			cleanError("Invalid ID")
 		}
 
 		realizeAmt, err := strconv.ParseFloat(args[3], 32)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid amount for realization
+			cleanError("Invalid amount")
 		}
 
 		realize(int(realizeId), realizeAmt)
 
 	// view and change month state
 	case "month":
-		// TODO build out month sub-function calls and handling
-		// sub-switch related to month state
-		// case "open":
-			// open current month (to allow changes in realized amounts until closed)
-		// case "close":
-			// close current month (to not allow further changes of realized amounts)
-		// case "reset":
-			// reset current month (set all realized values in current month to zero)
-		// case "change":
-			// change current month
-		// default:
-			// return current month for clarity
+		if len(args) == 2 {
+			showCurrentMonth()
+		}
+
+		// sub-switch on
+		switch args[2] {
+		case "close": // close current month, permanently logging it
+			if len(args) > 3 && args[3] == "-f" {
+				closeMonth(true)
+			} else {
+				closeMonth(false)
+			}
+		case "reset": // reset current month (set all realized values in current month to zero)
+			if len(args) > 3 && args[3] == "-f" {
+				reset(true)
+			} else {
+				reset(false)
+			}
+		default:
+			cleanError("Invalid command")
+		}
 
 	// reports and viewing
 	case "info": // list info for one specific budget item
 		if len(args) != 3 {
-			ShowErrorTextOfSomeKindAndExit() // no flags allowed in info command
+			cleanError("No flags allowed in info command")
 		}
 
 		infoId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			ShowErrorTextOfSomeKindAndExit() // invalid id
+			cleanError("Invalid ID")
 		}
 
 		info(int(infoId))
 
 	case "all": // list all budget items (name, amount, realized amount, category)
 		if len(args) != 2 {
-			ShowErrorTextOfSomeKindAndExit() // no args allowed in all command
+			cleanError("No arguments allowed in all command")
 		}
 		all()
 	case "report": // run report intended for viewing, on the current month
 		if len(args) != 2 {
-			ShowErrorTextOfSomeKindAndExit() // no args allowed in report command
+			cleanError("no arguments allowed in report command")
 		}
 		report()
 	default:
-		ShowErrorTextOfSomeKindAndExit() // invalid command
+		cleanError("Invalid command")
 	}
 }
 
 // TODO fill in this help text with stuff related to its locations in the code
 // shows custom help text if input is invalid
-func ShowErrorTextOfSomeKindAndExit() {
-	fmt.Printf("PLACEHOLDER HELP TEXT" + "\n")
+func cleanError(input string) {
+	fmt.Printf(input + "\n")
 	os.Exit(1)
 }
 
@@ -218,7 +242,11 @@ func realize(itemId int, amount float64) {
 
 // TODO build out function
 func all() {
-	return
+	if util.ConfigExists() {
+		fmt.Printf("CONFIG EXISTS")
+	} else {
+		fmt.Printf("Config does NOT exist!")
+	}
 }
 
 // TODO build out function
@@ -234,4 +262,28 @@ func info(itemId int) {
 // TODO build out function
 func modify(itemId int, amount float64, category string, description string, name string, realizedEdit bool, realizedAmount float64) {
 	return
+}
+
+// TODO build out this function
+func closeMonth(force bool) {
+	if !force {
+		// ask for confirmation and exit if not received
+	}
+
+	// rest of function
+}
+
+// TODO build out this function
+func reset(force bool) {
+	if !force {
+		// ask for confirmation and exit if not received
+	}
+
+	// rest of function
+}
+
+// TODO build out this function
+func showCurrentMonth() {
+	// return current month for clarity. if non-current, ask to close it. ask daily, not every time
+	// json required for this somewhere has current month as string and timestamp as "ask again after"
 }
