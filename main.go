@@ -221,7 +221,6 @@ func cleanError(input string) {
 	os.Exit(1)
 }
 
-// TODO build out function
 func add(name string, amount float64, category string, description string, mutable bool, recurrence string) {
 	newItem := models.ItemTemplate{
 		ID:              0,
@@ -233,7 +232,7 @@ func add(name string, amount float64, category string, description string, mutab
 		Mutable:         mutable,
 	}
 
-	err := ioutil.WriteNewItem(&newItem)
+	err := ioutil.WriteNewTemplate(&newItem)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -243,7 +242,12 @@ func add(name string, amount float64, category string, description string, mutab
 
 // TODO build out function
 func del(itemId int)  {
-	return
+	err := ioutil.DeleteItem(itemId)
+
+	if err != nil {
+		fmt.Printf(err.Error())
+		os.Exit(1)
+	}
 }
 
 // TODO build out function

@@ -3,13 +3,15 @@ package ioutil
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"sort"
+	"strconv"
 )
 
-func WriteNewItem(item *models.ItemTemplate) error {
+func WriteNewTemplate(item *models.ItemTemplate) error {
 	// first validate recurrence input
 	if item.Recurrence != "yearly" {
 		item.RecurrenceMonth = 0
@@ -85,5 +87,6 @@ func WriteNewItem(item *models.ItemTemplate) error {
 		return err
 	}
 
+	fmt.Println("Budget item " + strconv.Itoa(actualID) + " created successfully")
 	return nil
 }

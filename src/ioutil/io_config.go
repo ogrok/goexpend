@@ -36,10 +36,13 @@ func endOfCurrentMonth() int {
 
 // only called upon initialization to save initial config
 func saveInitialConfig() error {
+	eom := endOfCurrentMonth()
+
 	initialConfig := models.Config{
 		CurrentMonth:  int(time.Now().Month()),
 		CurrentYear:   time.Now().Year(),
-		AskAgainAfter: endOfCurrentMonth(),
+		MonthEnd:      eom,
+		AskAgainAfter: eom,
 	}
 
 	jsonConfig, err := json.Marshal(initialConfig)
