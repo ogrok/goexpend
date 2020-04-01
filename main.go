@@ -43,6 +43,7 @@ func main() {
 	}
 
 	switch args[1] {
+	// affecting config
 	case "init":
 		err := state.Initialize()
 
@@ -50,6 +51,15 @@ func main() {
 			fmt.Printf(err.Error() + "\n")
 			os.Exit(1)
 		}
+	case "income":
+		if len(args) != 3 {
+			println("Invalid input; please provide number only")
+			os.Exit(1)
+		}
+
+		intIncome, _ := strconv.Atoi(args[2])
+
+		income(intIncome)
 
 	// adding and removing entire budget items
 	case "add": // add new budget item
@@ -474,6 +484,17 @@ func reset(force bool) {
 		println(err.Error())
 		os.Exit(1)
 	}
+}
+
+func income(income int) {
+	err := state.WriteConfig(false, income)
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
+
+	println("Income updated to " + strconv.Itoa(income))
 }
 
 func CurrentMonth(showToUser bool) int {

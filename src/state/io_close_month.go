@@ -175,7 +175,7 @@ func generateNewMonth(templates *[]models.Template, newConfig bool) error {
 
 	if newConfig {
 		println("Welcome to " + time.Now().Month().String())
-		return WriteConfig()
+		return WriteConfig(true, -1)
 	}
 
 	return nil

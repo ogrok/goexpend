@@ -32,7 +32,7 @@ func ResetMonth() error {
 		os.Exit(1)
 	}
 
-	err = WriteConfig()
+	err = WriteConfig(true, -1)
 
 	if err != nil {
 		return err

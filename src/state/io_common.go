@@ -78,7 +78,7 @@ func Initialize() error {
 	}
 
 	if !ConfigExists() {
-		err = WriteConfig()
+		err = WriteConfig(true, -1)
 
 		if err != nil {
 			fmt.Printf(err.Error()+"\nIt is possible operation completed. Check manually if " + GetLogDataLoc() + " exists and rerun if needed.")

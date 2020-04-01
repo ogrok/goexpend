@@ -9,4 +9,7 @@ type Config struct {
 
 	// for checking when to ask about turn-of-month
 	AskAgainAfter int `json:"ask_again_after"`
+	
+	// figure for reporting against income; optional
+	Income		  int `json:"income,omitempty"`
 }

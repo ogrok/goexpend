@@ -56,17 +56,35 @@ func endOfCurrentMonth() int {
 	return int(time.Date(year, month, 1, 0, 0, 0, 0, time.Local).Unix())
 }
 
-func WriteConfig() error {
-	eom := endOfCurrentMonth()
+func WriteConfig(updateMonth bool, income int) error {
 
-	initialConfig := models.Config{
-		CurrentMonth:  int(time.Now().Month()),
-		CurrentYear:   time.Now().Year(),
-		MonthEnd:      eom,
-		AskAgainAfter: eom,
+	var config models.Config
+	var err error
+
+	if updateMonth {
+		eom := endOfCurrentMonth()
+
+		refreshedConfig := models.Config{
+			CurrentMonth:  int(time.Now().Month()),
+			CurrentYear:   time.Now().Year(),
+			MonthEnd:      eom,
+			AskAgainAfter: eom,
+		}
+
+		config = refreshedConfig
+	} else {
+		config, err = GetConfig()
+
+		if err != nil {
+			return err
+		}
 	}
 
-	jsonConfig, err := json.Marshal(initialConfig)
+	if income > 0 {
+		config.Income = income
+	}
+
+	jsonConfig, err := json.Marshal(config)
 
 	if err != nil {
 		return err
