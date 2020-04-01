@@ -55,8 +55,7 @@ func endOfCurrentMonth() int {
 	return int(time.Date(year, month, 1, 0, 0, 0, 0, time.Local).Unix())
 }
 
-// only called upon initialization to save initial config
-func saveInitialConfig() error {
+func WriteConfig() error {
 	eom := endOfCurrentMonth()
 
 	initialConfig := Config{
@@ -67,6 +66,34 @@ func saveInitialConfig() error {
 	}
 
 	jsonConfig, err := json.Marshal(initialConfig)
+
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(GetConfigDataLoc(), jsonConfig, os.ModePerm)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateAskAgainAfter(days int) error {
+	if days == 0 {
+		return nil
+	}
+
+	config, err := GetConfig()
+
+	if err != nil {
+		return err
+	}
+
+	config.AskAgainAfter += (86400 * days) // 1 day * number of days (passed as input)
+
+	jsonConfig, err := json.Marshal(config)
 
 	if err != nil {
 		return err

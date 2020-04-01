@@ -8,19 +8,22 @@ import (
 	"strconv"
 )
 
-func DeleteItem(id int) error {
-	_ = deleteActiveItem(id)
+func DeleteItem(id int, deleteTemplate bool) error {
+	_ = DeleteActiveItem(id)
 
-	err := deleteTemplateItem(id)
+	if deleteTemplate {
+		err := DeleteTemplateItem(id)
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
+
 
 	return nil
 }
 
-func deleteTemplateItem(id int) error {
+func DeleteTemplateItem(id int) error {
 	// delete item. we load all existing items and rewrite smaller set
 	// rather inefficient, but simplistic and nice
 
@@ -80,7 +83,7 @@ func deleteTemplateItem(id int) error {
 	return nil
 }
 
-func deleteActiveItem(id int) error {
+func DeleteActiveItem(id int) error {
 	// delete item. we load all existing items and rewrite smaller set
 	// rather inefficient, but simplistic and nice
 

@@ -10,21 +10,21 @@ import (
 	"strconv"
 )
 
-func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
+func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) (int, error) {
 	// first validate recurrence input
 	if item.Recurrence != "yearly" {
 		item.RecurrenceMonth = 0
 	}
 
 	if item.Recurrence != "yearly" && item.Recurrence != "monthly" && item.Recurrence != "none" {
-		return errors.New("Invalid recurrence parameter. Valid parameters are: `none`, `monthly`, `yearly`.\n")
+		return -1, errors.New("Invalid recurrence parameter. Valid parameters are: `none`, `monthly`, `yearly`.\n")
 	}
 
 	// other parameters are passed cleanly. just need to deal with ID
 	actualID, err := GetNextSequentialId()
 
 	if err != nil || actualID < 1 {
-		return err
+		return -1, err
 	}
 
 	item.ID = actualID
@@ -35,7 +35,7 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 	file, err := ioutil.ReadFile(GetTemplateDataLoc())
 
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var newFileContents []byte
@@ -50,7 +50,7 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 			err = json.Unmarshal(file, &singleTemplate)
 
 			if err != nil {
-				return err
+				return -1, err
 			}
 
 			templates = append(templates, singleTemplate)
@@ -61,7 +61,7 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 		for k, v := range templates {
 			for a, b := range templates {
 				if a != k && v.ID == b.ID {
-					return errors.New("ID conflict ("+string(v.ID)+"). No new item created")
+					return -1, errors.New("ID conflict ("+string(v.ID)+"). No new item created")
 				}
 			}
 		}
@@ -71,7 +71,7 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 		newFileContents, err = json.Marshal(templates)
 
 		if err != nil {
-			return err
+			return -1, err
 		}
 	} else {
 		templates = append(templates, *item)
@@ -83,7 +83,7 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 		err = WriteNewMonthItem(item, 0)
 
 		if err != nil {
-			return err
+			return -1, err
 		}
 	}
 
@@ -91,13 +91,13 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) error {
 
 	if err != nil {
 		// try to roll back creation of new month item from previous step
-		_ = deleteActiveItem(item.ID)
+		_ = DeleteActiveItem(item.ID)
 
-		return err
+		return -1, err
 	}
 
 	fmt.Println("Budget item " + strconv.Itoa(actualID) + " created successfully")
-	return nil
+	return actualID, nil
 }
 
 // create new item in active month concurrently with new template

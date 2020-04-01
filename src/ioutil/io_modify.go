@@ -31,12 +31,12 @@ func ModifyItem(input ModTemplate, realizedEdit bool, affectTemplate bool) error
 	}
 
 	if affectTemplate {
-		_ = deleteTemplateItem(input.ID)
+		_ = DeleteTemplateItem(input.ID)
 	}
-	_ = deleteActiveItem(input.ID)
+	_ = DeleteActiveItem(input.ID)
 
 	if affectTemplate {
-    	_ = WriteNewTemplate(&template, false)
+    	_, _ = WriteNewTemplate(&template, false)
 	}
     _ = WriteNewMonthItem(&template, item.Realized)
 

@@ -30,9 +30,11 @@ func main() {
 	// then check config for whether we are past AskAgainAt
 	config, _ := ioutil.GetConfig()
 
-	if time.Now().Unix() > int64(config.AskAgainAfter) {
-		if askUserToClose() {
+	if time.Now().Unix() > int64(config.AskAgainAfter) && args[1] != "purge" && args[1] != "month" {
+		if askUserToClose(true) {
 			closeMonth(true)
+		} else {
+			_ = ioutil.UpdateAskAgainAfter(1)
 		}
 	}
 
@@ -258,16 +260,24 @@ func add(name string, amount int, category string, description string, mutable b
 		Mutable:         mutable,
 	}
 
-	err := ioutil.WriteNewTemplate(&newItem, true)
+	id, err := ioutil.WriteNewTemplate(&newItem, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
 		os.Exit(1)
 	}
+
+	if recurrence == "none" {
+		err := ioutil.DeleteTemplateItem(id)
+		if err != nil {
+			println(err.Error())
+			os.Exit(1)
+		}
+	}
 }
 
 func del(itemId int)  {
-	err := ioutil.DeleteItem(itemId)
+	err := ioutil.DeleteItem(itemId, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -294,6 +304,8 @@ func accrue(itemId int, amount int) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
+	println("Accrued amount of " + strconv.Itoa(amount))
 }
 
 func realize(itemId int, amount int) {
@@ -336,11 +348,12 @@ func report() {
 }
 
 func info(itemId int) {
+	templateExists := true
+
 	template, err := ioutil.GetSpecificTemplate(itemId)
 
 	if err != nil {
-		println(err.Error())
-		os.Exit(1)
+		templateExists = false
 	}
 
 	activeItem, err := ioutil.GetSpecificActiveItem(itemId)
@@ -350,17 +363,32 @@ func info(itemId int) {
 		os.Exit(1)
 	}
 
+	// account for when template doesn't exist, in case of non-recurrence
+	var amountToShow int
+	var recurToShow string
+	var monthToShow int
+
+	if templateExists {
+		amountToShow = template.Amount
+		recurToShow = template.Recurrence
+		monthToShow = template.RecurrenceMonth
+	} else {
+		amountToShow = activeItem.Accrued
+		recurToShow = "none"
+		monthToShow = -1
+	}
+
 	viewmodel := ioutil.ViewmodelInfo{
-		ID:              template.ID,
-		Name:            template.Name,
-		Category:        template.Category,
-		Description:     template.Description,
+		ID:              activeItem.ID,
+		Name:            activeItem.Name,
+		Category:        activeItem.Category,
+		Description:     activeItem.Description,
 		CurrentAccrued:  activeItem.Accrued,
 		Realized:        activeItem.Realized,
-		Mutable:         template.Mutable,
-		Amount:          template.Amount,
-		Recurrence:      template.Recurrence,
-		RecurrenceMonth: template.RecurrenceMonth,
+		Mutable:         activeItem.Mutable,
+		Amount:          amountToShow,
+		Recurrence:      recurToShow,
+		RecurrenceMonth: monthToShow,
 	}
 
 	var recurrenceDesc string
@@ -412,16 +440,21 @@ func closeMonth(force bool) {
 		os.Exit(1)
 	}
 
-	if int64(config.MonthEnd) > time.Now().Unix() {
+	if int64(config.MonthEnd) < time.Now().Unix() {
 		println("Error: You cannot close the month until it is over")
 		os.Exit(1)
 	}
 
-	if !force && !userConfirms("close the current month and open the month of " + time.Now().Month().String()) {
-		os.Exit(1)
+	if !force {
+		if !userConfirms("close the current month and open the month of " + time.Now().Month().String()) {
+			os.Exit(1)
+		}
 	}
 
-	// TODO rest of function that actually closes the month, builds logs, etc.
+	if err := ioutil.CloseMonth(); err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
 }
 
 // TODO build out this function
@@ -450,8 +483,18 @@ func userConfirms(operation string) bool {
 	return false
 }
 
-func askUserToClose() bool {
+func askUserToClose(summary bool) bool {
 	reader := bufio.NewReader(os.Stdin)
+	if summary {
+		config, err := ioutil.GetConfig()
+
+		if err == nil {
+			fmt.Println("It is now " + time.Now().Month().String() + " " +
+				strconv.Itoa(time.Now().Year()) + " and the current active month is " +
+				time.Month(config.CurrentMonth).String() + " " +
+				strconv.Itoa(config.CurrentYear) + ".")
+		}
+	}
 	fmt.Print("Would you like to close the old month and open the budget for the month of "+ time.Now().Month().String() +"? [Y/n] ")
 	text, _ := reader.ReadString('\n')
 	if strings.ToUpper(strings.TrimSpace(text)) == "Y" {
