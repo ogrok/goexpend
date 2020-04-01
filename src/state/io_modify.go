@@ -1,6 +1,8 @@
-package goex
+package state
 
-func ModifyItem(input ModTemplate, realizedEdit bool, affectTemplate bool) error {
+import "github.com/adaminoue/goexpend/src/models"
+
+func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bool) error {
 	item, err := GetSpecificActiveItem(input.ID)
 
 	if err != nil {

@@ -4,7 +4,8 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/adaminoue/goexpend/src/goex"
+	"github.com/adaminoue/goexpend/src/models"
+	"github.com/adaminoue/goexpend/src/state"
 	"os"
 	"strconv"
 	"strings"
@@ -18,23 +19,23 @@ func main() {
 	args := os.Args
 
 	// first check if config exists. force creation if not
-	configExists := goex.ConfigExists()
+	configExists := state.ConfigExists()
 
 	if !configExists {
 		if args[1] != "init" {
-			fmt.Printf("Config file does not exist at " + goex.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
+			fmt.Printf("Config file does not exist at " + state.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
 			os.Exit(1)
 		}
 	}
 
 	// then check config for whether we are past AskAgainAt
-	config, _ := goex.GetConfig()
+	config, _ := state.GetConfig()
 
 	if time.Now().Unix() > int64(config.AskAgainAfter) && args[1] != "purge" && args[1] != "month" {
 		if askUserToClose(true) {
 			closeMonth(true)
 		} else {
-			_ = goex.UpdateAskAgainAfter(1)
+			_ = state.UpdateAskAgainAfter(1)
 		}
 	}
 
@@ -47,7 +48,7 @@ func main() {
 
 	switch args[1] {
 	case "init":
-		err := goex.Initialize()
+		err := state.Initialize()
 
 		if err != nil {
 			fmt.Printf(err.Error() + "\n")
@@ -132,7 +133,16 @@ func main() {
 		}
 
 		if modifyCommand.Parsed() {
-			modify(int(modifyId), *amountFlag, *categoryFlag, *descriptionFlag, *nameFlag, realizedEdit, *realizedFlag)
+			var mods = models.Modification{
+				ID:          int(modifyId),
+				Amount:      *amountFlag,
+				Category:    *categoryFlag,
+				Description: *descriptionFlag,
+				Name:        *nameFlag,
+				Realized:    *realizedFlag,
+			}
+
+			modify(&mods, realizedEdit)
 		} else {
 			cleanError("Failed to parse arguments for modify command")
 		}
@@ -225,7 +235,7 @@ func main() {
 		report()
 
 	case "purge": // remove all data then run init
-		if userConfirms("remove all data and reset goex") {
+		if userConfirms("remove all data and reset goexpend") {
 			err := Purge()
 
 			if err != nil {
@@ -249,7 +259,7 @@ func cleanError(input string) {
 }
 
 func add(name string, amount int, category string, description string, mutable bool, recurrence string) {
-	newItem := goex.ItemTemplate{
+	newItem := models.Template{
 		ID:              0,
 		Name:            name,
 		Category:        category,
@@ -260,7 +270,7 @@ func add(name string, amount int, category string, description string, mutable b
 		Mutable:         mutable,
 	}
 
-	id, err := goex.WriteNewTemplate(&newItem, true)
+	id, err := state.WriteNewTemplate(&newItem, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -268,7 +278,7 @@ func add(name string, amount int, category string, description string, mutable b
 	}
 
 	if recurrence == "none" {
-		err := goex.DeleteTemplateItem(id)
+		err := state.DeleteTemplateItem(id)
 		if err != nil {
 			println(err.Error())
 			os.Exit(1)
@@ -277,7 +287,7 @@ func add(name string, amount int, category string, description string, mutable b
 }
 
 func del(itemId int)  {
-	err := goex.DeleteItem(itemId, true)
+	err := state.DeleteItem(itemId, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -286,19 +296,19 @@ func del(itemId int)  {
 }
 
 func accrue(itemId int, amount int) {
-	currentItem, err := goex.GetSpecificActiveItem(itemId)
+	currentItem, err := state.GetSpecificActiveItem(itemId)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	var mod = goex.ModTemplate{
+	var mod = models.Modification{
 		ID:          itemId,
 		Amount:      currentItem.Accrued + amount,
 	}
 
-	err = goex.ModifyItem(mod, false, false)
+	err = state.ModifyItem(&mod, false, false)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -309,33 +319,31 @@ func accrue(itemId int, amount int) {
 }
 
 func realize(itemId int, amount int) {
-	currentItem, err := goex.GetSpecificActiveItem(itemId)
+	currentItem, err := state.GetSpecificActiveItem(itemId)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	var mod = goex.ModTemplate{
+	var mod = models.Modification{
 		ID:          itemId,
 		Realized:    currentItem.Realized + amount,
 	}
 
-	err = goex.ModifyItem(mod, true, false)
+	err = state.ModifyItem(&mod, true, false)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-
-
 
 	println("Realized amount of " + strconv.Itoa(amount))
 }
 
 // TODO build out function
 func all() {
-	if goex.ConfigExists() {
+	if state.ConfigExists() {
 		fmt.Printf("CONFIG EXISTS")
 	} else {
 		fmt.Printf("Config does NOT exist!")
@@ -350,13 +358,13 @@ func report() {
 func info(itemId int) {
 	templateExists := true
 
-	template, err := goex.GetSpecificTemplate(itemId)
+	template, err := state.GetSpecificTemplate(itemId)
 
 	if err != nil {
 		templateExists = false
 	}
 
-	activeItem, err := goex.GetSpecificActiveItem(itemId)
+	activeItem, err := state.GetSpecificActiveItem(itemId)
 
 	if err != nil {
 		println(err.Error())
@@ -378,7 +386,7 @@ func info(itemId int) {
 		monthToShow = -1
 	}
 
-	viewmodel := goex.ViewmodelInfo{
+	viewmodel := models.ActiveItemView{
 		ID:              activeItem.ID,
 		Name:            activeItem.Name,
 		Category:        activeItem.Category,
@@ -414,17 +422,8 @@ func info(itemId int) {
 		"\n")
 }
 
-func modify(itemId int, amount int, category string, description string, name string, realizedEdit bool, realizedAmount int) {
-	var modTemplate = goex.ModTemplate{
-		ID:          itemId,
-		Amount:      amount,
-		Category:    category,
-		Description: description,
-		Name:        name,
-		Realized:    realizedAmount,
-	}
-
-	err := goex.ModifyItem(modTemplate, realizedEdit, true)
+func modify(mods *models.Modification, realizedEdit bool) {
+	err := state.ModifyItem(mods, realizedEdit, true)
 
 	if err != nil {
 		println(err.Error())
@@ -433,7 +432,7 @@ func modify(itemId int, amount int, category string, description string, name st
 }
 
 func closeMonth(force bool) {
-	config, err := goex.GetConfig()
+	config, err := state.GetConfig()
 
 	if err != nil {
 		println(err.Error())
@@ -451,7 +450,7 @@ func closeMonth(force bool) {
 		}
 	}
 
-	if err := goex.CloseMonth(); err != nil {
+	if err := state.CloseMonth(); err != nil {
 		println(err.Error())
 		os.Exit(1)
 	}
@@ -486,7 +485,7 @@ func userConfirms(operation string) bool {
 func askUserToClose(summary bool) bool {
 	reader := bufio.NewReader(os.Stdin)
 	if summary {
-		config, err := goex.GetConfig()
+		config, err := state.GetConfig()
 
 		if err == nil {
 			fmt.Println("It is now " + time.Now().Month().String() + " " +
@@ -505,7 +504,7 @@ func askUserToClose(summary bool) bool {
 }
 
 func Purge() error {
-	dir := goex.GetDir()
+	dir := state.GetDir()
 
 	err := os.RemoveAll(dir)
 
@@ -514,7 +513,7 @@ func Purge() error {
 	}
 
 	fmt.Println("Purge complete. Rerunning init...")
-	err = goex.Initialize()
+	err = state.Initialize()
 
 	if err != nil {
 		return err

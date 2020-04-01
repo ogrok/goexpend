@@ -1,13 +1,13 @@
-package goex
+package models
 
-type MonthLog struct {
-	ID       int            `json:"id"`        // iterative ID just to keep the list ordinal
-	Month    int            `json:"month"`
-	Year     int            `json:"year"`
-	LogItems []MonthLogItem `json:"log_items"`
+type Log struct {
+	ID       int       `json:"id"`        // iterative ID just to keep the list ordinal
+	Month    int       `json:"month"`
+	Year     int       `json:"year"`
+	LogItems []LogItem `json:"log_items"`
 }
 
-type MonthLogItem struct {
+type LogItem struct {
 	Name        string  `json:"name"`
 	Category    string  `json:"category"`
 	Description string  `json:"description"`

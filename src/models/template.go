@@ -1,6 +1,6 @@
-package goex
+package models
 
-type ItemTemplate struct {
+type Template struct {
 	ID              int     `json:"id"`               // one-indexed; common ID
 	Name            string  `json:"name"`
 	Category        string  `json:"category"`

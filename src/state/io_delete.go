@@ -1,8 +1,9 @@
-package goex
+package state
 
 import (
 	"encoding/json"
 	"errors"
+	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -36,7 +37,7 @@ func DeleteTemplateItem(id int) error {
 	}
 
 	var newFileContents []byte
-	var templates []ItemTemplate
+	var templates []models.Template
 
 	if len(file) == 0 {
 		return errors.New("Nothing to delete")
@@ -46,7 +47,7 @@ func DeleteTemplateItem(id int) error {
 
 	// maybe json only has one object in it
 	if err != nil {
-		var singleTemplate ItemTemplate
+		var singleTemplate models.Template
 
 		err := json.Unmarshal(file, &singleTemplate)
 
@@ -96,7 +97,7 @@ func DeleteActiveItem(id int) error {
 	}
 
 	var newFileContents []byte
-	var monthItems []MonthItem
+	var monthItems []models.ActiveItem
 
 	if len(file) == 0 {
 		return errors.New("Nothing to delete")
@@ -106,7 +107,7 @@ func DeleteActiveItem(id int) error {
 
 	// maybe json only has one object in it
 	if err != nil {
-		var singleItem MonthItem
+		var singleItem models.ActiveItem
 
 		err := json.Unmarshal(file, &singleItem)
 
@@ -134,10 +135,10 @@ func DeleteActiveItem(id int) error {
 	return nil
 }
 
-func removeTemplate(slice []ItemTemplate, s int) []ItemTemplate {
+func removeTemplate(slice []models.Template, s int) []models.Template {
 	return append(slice[:s], slice[s+1:]...)
 }
 
-func removeActiveItem(slice []MonthItem, s int) []MonthItem {
+func removeActiveItem(slice []models.ActiveItem, s int) []models.ActiveItem {
 	return append(slice[:s], slice[s+1:]...)
 }

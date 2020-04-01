@@ -1,6 +1,6 @@
-package goex
+package models
 
-type ModTemplate struct {
+type Modification struct {
 	ID          int
 	Amount      int
 	Category    string
@@ -9,7 +9,7 @@ type ModTemplate struct {
 	Realized    int
 }
 
-type ViewmodelInfo struct {
+type ActiveItemView struct {
 	ID              int
 	Name            string
 	Category        string
@@ -22,6 +22,6 @@ type ViewmodelInfo struct {
 	RecurrenceMonth int
 }
 
-func (v *ViewmodelInfo) Remains() int {
+func (v *ActiveItemView) Remains() int {
 	return v.CurrentAccrued - v.Realized
 }

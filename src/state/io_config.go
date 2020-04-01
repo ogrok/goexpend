@@ -1,8 +1,9 @@
-package goex
+package state
 
 import (
 	"encoding/json"
 	"errors"
+	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"time"
@@ -18,13 +19,13 @@ func ConfigExists() bool {
 	return true
 }
 
-func GetConfig() (Config, error) {
+func GetConfig() (models.Config, error) {
 	if !ConfigExists() {
-		return Config{}, errors.New("config does not exist")
+		return models.Config{}, errors.New("config does not exist")
 	}
 
 	file, err := ioutil.ReadFile(GetConfigDataLoc())
-	var config Config
+	var config models.Config
 
 	if err != nil {
 		return config, err
@@ -33,7 +34,7 @@ func GetConfig() (Config, error) {
 	err = json.Unmarshal(file, &config)
 
 	if err != nil {
-		return Config{}, err
+		return models.Config{}, err
 	}
 
 	return config, nil
@@ -58,7 +59,7 @@ func endOfCurrentMonth() int {
 func WriteConfig() error {
 	eom := endOfCurrentMonth()
 
-	initialConfig := Config{
+	initialConfig := models.Config{
 		CurrentMonth:  int(time.Now().Month()),
 		CurrentYear:   time.Now().Year(),
 		MonthEnd:      eom,

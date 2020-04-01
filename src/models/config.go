@@ -1,4 +1,4 @@
-package goex
+package models
 
 type Config struct {
 	CurrentMonth  int `json:"current_month"`

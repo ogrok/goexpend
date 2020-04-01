@@ -1,16 +1,17 @@
-package goex
+package state
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
 )
 
-func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) (int, error) {
+func WriteNewTemplate(item *models.Template, alsoMonthItem bool) (int, error) {
 	// first validate recurrence input
 	if item.Recurrence != "yearly" {
 		item.RecurrenceMonth = 0
@@ -39,14 +40,14 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) (int, error) {
 	}
 
 	var newFileContents []byte
-	var templates []ItemTemplate
+	var templates []models.Template
 
 	if len(file) != 0 {
 		err = json.Unmarshal(file, &templates)
 
 		// single-objects need to be unmarshaled into single-obj var then appended to array
 		if err != nil {
-			var singleTemplate ItemTemplate
+			var singleTemplate models.Template
 			err = json.Unmarshal(file, &singleTemplate)
 
 			if err != nil {
@@ -101,8 +102,8 @@ func WriteNewTemplate(item *ItemTemplate, alsoMonthItem bool) (int, error) {
 }
 
 // create new item in active month concurrently with new template
-func WriteNewMonthItem(input *ItemTemplate, realizedAmount int) error {
-	monthItem := MonthItem{
+func WriteNewMonthItem(input *models.Template, realizedAmount int) error {
+	monthItem := models.ActiveItem{
 		ID:       input.ID,
 		Name:     input.Name,
 		Category: input.Category,
@@ -118,14 +119,14 @@ func WriteNewMonthItem(input *ItemTemplate, realizedAmount int) error {
 	}
 
 	var newFileContents []byte
-	var activeItems []MonthItem
+	var activeItems []models.ActiveItem
 
 	if len(file) != 0 {
 		err = json.Unmarshal(file, &activeItems)
 
 		// single-objects need to be unmarshaled into single-obj var then appended to array
 		if err != nil {
-			var singleTemplate MonthItem
+			var singleTemplate models.ActiveItem
 			err = json.Unmarshal(file, &singleTemplate)
 
 			if err != nil {

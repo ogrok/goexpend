@@ -1,9 +1,10 @@
-package goex
+package state
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"strconv"
 )
 
-const dir = "/.goex"
+const dir = "/.goexpend"
 const activeData = dir + "/active.json"
 const logData = dir + "/log.json"
 const configData = dir + "/config.json"
@@ -140,7 +141,7 @@ func GetConfigDataLoc() string {
 }
 
 func GetNextSequentialId() (int, error) {
-	var templates []ItemTemplate
+	var templates []models.Template
 
 	file, err := ioutil.ReadFile(GetTemplateDataLoc())
 
@@ -155,7 +156,7 @@ func GetNextSequentialId() (int, error) {
 	err = json.Unmarshal(file, &templates)
 
 	if err != nil {
-		var singleTemplate ItemTemplate
+		var singleTemplate models.Template
 		err = json.Unmarshal(file, &singleTemplate)
 
 		if err != nil {
@@ -165,7 +166,7 @@ func GetNextSequentialId() (int, error) {
 		templates = append(templates, singleTemplate)
 	}
 
-	var activeItems []MonthItem
+	var activeItems []models.ActiveItem
 
 	file, err = ioutil.ReadFile(GetActiveDataLoc())
 
@@ -180,7 +181,7 @@ func GetNextSequentialId() (int, error) {
 	err = json.Unmarshal(file, &activeItems)
 
 	if err != nil {
-		var singleMonthItem MonthItem
+		var singleMonthItem models.ActiveItem
 		err = json.Unmarshal(file, &singleMonthItem)
 
 		if err != nil {
@@ -218,8 +219,8 @@ func GetNextSequentialId() (int, error) {
 	}
 }
 
-func GetAllTemplates() ([]ItemTemplate, error) {
-	var result []ItemTemplate
+func GetAllTemplates() ([]models.Template, error) {
+	var result []models.Template
 
 	file, err := ioutil.ReadFile(GetTemplateDataLoc())
 
@@ -236,8 +237,8 @@ func GetAllTemplates() ([]ItemTemplate, error) {
 	return result, nil
 }
 
-func GetAllActiveItems() ([]MonthItem, error) {
-	var result []MonthItem
+func GetAllActiveItems() ([]models.ActiveItem, error) {
+	var result []models.ActiveItem
 
 	file, err := ioutil.ReadFile(GetActiveDataLoc())
 
@@ -254,11 +255,11 @@ func GetAllActiveItems() ([]MonthItem, error) {
 	return result, nil
 }
 
-func GetSpecificTemplate(id int) (ItemTemplate, error) {
+func GetSpecificTemplate(id int) (models.Template, error) {
 	all, err := GetAllTemplates()
 
 	if err != nil {
-		return ItemTemplate{}, err
+		return models.Template{}, err
 	}
 
 	for _, v := range all {
@@ -267,14 +268,14 @@ func GetSpecificTemplate(id int) (ItemTemplate, error) {
 		}
 	}
 
-	return ItemTemplate{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
+	return models.Template{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
 }
 
-func GetSpecificActiveItem(id int) (MonthItem, error) {
+func GetSpecificActiveItem(id int) (models.ActiveItem, error) {
 	all, err := GetAllActiveItems()
 
 	if err != nil {
-		return MonthItem{}, err
+		return models.ActiveItem{}, err
 	}
 
 	for _, v := range all {
@@ -283,5 +284,16 @@ func GetSpecificActiveItem(id int) (MonthItem, error) {
 		}
 	}
 
-	return MonthItem{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
+	return models.ActiveItem{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
+}
+
+// returns amount of excess from template accrued amount, e.g. amount of manual accrual at the moment
+func Excess(i *models.ActiveItem) int {
+	template, err := GetSpecificTemplate(i.ID)
+
+	if err != nil {
+		return 0
+	}
+
+	return i.Accrued - template.Amount
 }

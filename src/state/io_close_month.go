@@ -1,8 +1,9 @@
-package goex
+package state
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/adaminoue/goexpend/src/models"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -23,7 +24,7 @@ func CloseMonth() error {
 	if len(items) == 0 {
 		fmt.Println("No items to log. Advancing to current month...")
 
-		var blank []ItemTemplate
+		var blank []models.Template
 		if err := generateNewMonth(&blank, true); err != nil {
 			return err
 		} else {
@@ -35,15 +36,15 @@ func CloseMonth() error {
 		return err
 	}
 
-	var logs []MonthLogItem
+	var logs []models.LogItem
 
 	for _, item := range items {
-		logs = append(logs, MonthLogItem{
+		logs = append(logs, models.LogItem{
 			Name:        item.Name,
 			Category:    item.Category,
 			Description: item.Description,
 			Accrued:     item.Accrued,
-			Excess:      item.Excess(),
+			Excess:      Excess(&item),
 			Realized:    item.Realized,
 			Remaining:   item.Remaining(),
 			Mutable:     item.Mutable,
@@ -56,7 +57,7 @@ func CloseMonth() error {
 		return err
 	}
 
-	var completeMonthLog = MonthLog{
+	var completeMonthLog = models.Log{
 		ID:       newLogId,
 		Month:    config.CurrentMonth,
 		Year:     config.CurrentYear,
@@ -118,8 +119,8 @@ func getNextLogId() (int, error) {
 	}
 }
 
-func getExistingLogs() ([]MonthLog, error) {
-	var result []MonthLog
+func getExistingLogs() ([]models.Log, error) {
+	var result []models.Log
 
 	fileLoc := GetLogDataLoc()
 
@@ -134,7 +135,7 @@ func getExistingLogs() ([]MonthLog, error) {
 	return result, err
 }
 
-func saveOverLogFile(logs *[]MonthLog) error {
+func saveOverLogFile(logs *[]models.Log) error {
 	fileLoc := GetLogDataLoc()
 
 	logsJson, err := json.Marshal(logs)
@@ -149,7 +150,7 @@ func saveOverLogFile(logs *[]MonthLog) error {
 }
 
 // deeply inefficient because one-each R/W operation occurs per item. should refactor, but works
-func generateNewMonth(templates *[]ItemTemplate, newConfig bool) error {
+func generateNewMonth(templates *[]models.Template, newConfig bool) error {
 	fileLoc := GetActiveDataLoc()
 
 	err := os.RemoveAll(fileLoc)
