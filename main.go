@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/adaminoue/goexpend/src/ioutil"
+	"github.com/adaminoue/goexpend/src/goexpend"
 	"os"
 	"strconv"
 	"strings"
@@ -18,23 +18,23 @@ func main() {
 	args := os.Args
 
 	// first check if config exists. force creation if not
-	configExists := ioutil.ConfigExists()
+	configExists := goexpend.ConfigExists()
 
 	if !configExists {
 		if args[1] != "init" {
-			fmt.Printf("Config file does not exist at " + ioutil.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
+			fmt.Printf("Config file does not exist at " + goexpend.GetConfigDataLoc() + ".\nDid you run `goex init` yet?\n")
 			os.Exit(1)
 		}
 	}
 
 	// then check config for whether we are past AskAgainAt
-	config, _ := ioutil.GetConfig()
+	config, _ := goexpend.GetConfig()
 
 	if time.Now().Unix() > int64(config.AskAgainAfter) && args[1] != "purge" && args[1] != "month" {
 		if askUserToClose(true) {
 			closeMonth(true)
 		} else {
-			_ = ioutil.UpdateAskAgainAfter(1)
+			_ = goexpend.UpdateAskAgainAfter(1)
 		}
 	}
 
@@ -47,7 +47,7 @@ func main() {
 
 	switch args[1] {
 	case "init":
-		err := ioutil.Initialize()
+		err := goexpend.Initialize()
 
 		if err != nil {
 			fmt.Printf(err.Error() + "\n")
@@ -249,7 +249,7 @@ func cleanError(input string) {
 }
 
 func add(name string, amount int, category string, description string, mutable bool, recurrence string) {
-	newItem := ioutil.ItemTemplate{
+	newItem := goexpend.ItemTemplate{
 		ID:              0,
 		Name:            name,
 		Category:        category,
@@ -260,7 +260,7 @@ func add(name string, amount int, category string, description string, mutable b
 		Mutable:         mutable,
 	}
 
-	id, err := ioutil.WriteNewTemplate(&newItem, true)
+	id, err := goexpend.WriteNewTemplate(&newItem, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -268,7 +268,7 @@ func add(name string, amount int, category string, description string, mutable b
 	}
 
 	if recurrence == "none" {
-		err := ioutil.DeleteTemplateItem(id)
+		err := goexpend.DeleteTemplateItem(id)
 		if err != nil {
 			println(err.Error())
 			os.Exit(1)
@@ -277,7 +277,7 @@ func add(name string, amount int, category string, description string, mutable b
 }
 
 func del(itemId int)  {
-	err := ioutil.DeleteItem(itemId, true)
+	err := goexpend.DeleteItem(itemId, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -286,19 +286,19 @@ func del(itemId int)  {
 }
 
 func accrue(itemId int, amount int) {
-	currentItem, err := ioutil.GetSpecificActiveItem(itemId)
+	currentItem, err := goexpend.GetSpecificActiveItem(itemId)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	var mod = ioutil.ModTemplate{
+	var mod = goexpend.ModTemplate{
 		ID:          itemId,
 		Amount:      currentItem.Accrued + amount,
 	}
 
-	err = ioutil.ModifyItem(mod, false, false)
+	err = goexpend.ModifyItem(mod, false, false)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -309,19 +309,19 @@ func accrue(itemId int, amount int) {
 }
 
 func realize(itemId int, amount int) {
-	currentItem, err := ioutil.GetSpecificActiveItem(itemId)
+	currentItem, err := goexpend.GetSpecificActiveItem(itemId)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	var mod = ioutil.ModTemplate{
+	var mod = goexpend.ModTemplate{
 		ID:          itemId,
 		Realized:    currentItem.Realized + amount,
 	}
 
-	err = ioutil.ModifyItem(mod, true, false)
+	err = goexpend.ModifyItem(mod, true, false)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -335,7 +335,7 @@ func realize(itemId int, amount int) {
 
 // TODO build out function
 func all() {
-	if ioutil.ConfigExists() {
+	if goexpend.ConfigExists() {
 		fmt.Printf("CONFIG EXISTS")
 	} else {
 		fmt.Printf("Config does NOT exist!")
@@ -350,13 +350,13 @@ func report() {
 func info(itemId int) {
 	templateExists := true
 
-	template, err := ioutil.GetSpecificTemplate(itemId)
+	template, err := goexpend.GetSpecificTemplate(itemId)
 
 	if err != nil {
 		templateExists = false
 	}
 
-	activeItem, err := ioutil.GetSpecificActiveItem(itemId)
+	activeItem, err := goexpend.GetSpecificActiveItem(itemId)
 
 	if err != nil {
 		println(err.Error())
@@ -378,7 +378,7 @@ func info(itemId int) {
 		monthToShow = -1
 	}
 
-	viewmodel := ioutil.ViewmodelInfo{
+	viewmodel := goexpend.ViewmodelInfo{
 		ID:              activeItem.ID,
 		Name:            activeItem.Name,
 		Category:        activeItem.Category,
@@ -415,7 +415,7 @@ func info(itemId int) {
 }
 
 func modify(itemId int, amount int, category string, description string, name string, realizedEdit bool, realizedAmount int) {
-	var modTemplate = ioutil.ModTemplate{
+	var modTemplate = goexpend.ModTemplate{
 		ID:          itemId,
 		Amount:      amount,
 		Category:    category,
@@ -424,7 +424,7 @@ func modify(itemId int, amount int, category string, description string, name st
 		Realized:    realizedAmount,
 	}
 
-	err := ioutil.ModifyItem(modTemplate, realizedEdit, true)
+	err := goexpend.ModifyItem(modTemplate, realizedEdit, true)
 
 	if err != nil {
 		println(err.Error())
@@ -433,7 +433,7 @@ func modify(itemId int, amount int, category string, description string, name st
 }
 
 func closeMonth(force bool) {
-	config, err := ioutil.GetConfig()
+	config, err := goexpend.GetConfig()
 
 	if err != nil {
 		println(err.Error())
@@ -451,7 +451,7 @@ func closeMonth(force bool) {
 		}
 	}
 
-	if err := ioutil.CloseMonth(); err != nil {
+	if err := goexpend.CloseMonth(); err != nil {
 		println(err.Error())
 		os.Exit(1)
 	}
@@ -486,7 +486,7 @@ func userConfirms(operation string) bool {
 func askUserToClose(summary bool) bool {
 	reader := bufio.NewReader(os.Stdin)
 	if summary {
-		config, err := ioutil.GetConfig()
+		config, err := goexpend.GetConfig()
 
 		if err == nil {
 			fmt.Println("It is now " + time.Now().Month().String() + " " +
@@ -505,7 +505,7 @@ func askUserToClose(summary bool) bool {
 }
 
 func Purge() error {
-	dir := ioutil.GetDir()
+	dir := goexpend.GetDir()
 
 	err := os.RemoveAll(dir)
 
@@ -514,7 +514,7 @@ func Purge() error {
 	}
 
 	fmt.Println("Purge complete. Rerunning init...")
-	err = ioutil.Initialize()
+	err = goexpend.Initialize()
 
 	if err != nil {
 		return err
