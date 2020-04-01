@@ -39,7 +39,12 @@ func main() {
 
 	if len(args) == 1 {
 		// execute current default function. TODO make this configurable
-		report()
+		err := state.ShowFullReport()
+
+		if err != nil {
+			println(err.Error())
+			os.Exit(1)
+		}
 	}
 
 	switch args[1] {
@@ -238,7 +243,12 @@ func main() {
 		if len(args) != 2 {
 			cleanError("no arguments allowed in report command")
 		}
-		report()
+		err := state.ShowFullReport()
+
+		if err != nil {
+			println(err.Error())
+			os.Exit(1)
+		}
 
 	case "purge": // remove all data then run init
 		if userConfirms("remove all data and reset goexpend") {
@@ -362,11 +372,6 @@ func all() {
 	for _, item := range items {
 		info(item.ID)
 	}
-}
-
-// TODO build out function
-func report() {
-	return
 }
 
 func info(itemId int) {
