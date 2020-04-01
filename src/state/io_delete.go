@@ -9,22 +9,19 @@ import (
 	"strconv"
 )
 
-func DeleteItem(id int, deleteTemplate bool) error {
+func DeleteItem(id int) error {
 	_ = DeleteActiveItem(id)
 
-	if deleteTemplate {
-		err := DeleteTemplateItem(id)
+	err := DeleteTemplateItem(id, true)
 
-		if err != nil {
+	if err != nil {
 			return err
 		}
-	}
-
 
 	return nil
 }
 
-func DeleteTemplateItem(id int) error {
+func DeleteTemplateItem(id int, message bool) error {
 	// delete item. we load all existing items and rewrite smaller set
 	// rather inefficient, but simplistic and nice
 
@@ -75,10 +72,10 @@ func DeleteTemplateItem(id int) error {
 		return err
 	}
 
-	if deletionOccurred {
-		println("Item " + strconv.Itoa(id) + " deleted successfully.")
-	} else {
+	if !deletionOccurred {
 		println("Item " + strconv.Itoa(id) + " not found.")
+	} else if message {
+		println("Item " + strconv.Itoa(id) + " deleted successfully.")
 	}
 
 	return nil

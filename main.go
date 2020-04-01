@@ -32,11 +32,7 @@ func main() {
 	config, _ := state.GetConfig()
 
 	if time.Now().Unix() > int64(config.AskAgainAfter) && args[1] != "purge" && args[1] != "month" {
-		if askUserToClose(true) {
-			closeMonth(true)
-		} else {
-			_ = state.UpdateAskAgainAfter(1)
-		}
+		SuggestMonthClose()
 	}
 
 	// then begin processing input
@@ -187,7 +183,7 @@ func main() {
 	// view and change month state
 	case "month":
 		if len(args) == 2 {
-			_ = showCurrentMonth()
+			_ = CurrentMonth(true)
 			os.Exit(0)
 		}
 
@@ -266,7 +262,7 @@ func add(name string, amount int, category string, description string, mutable b
 		Description:     description,
 		Amount:          amount,
 		Recurrence:      recurrence,
-		RecurrenceMonth: showCurrentMonth(),
+		RecurrenceMonth: CurrentMonth(false),
 		Mutable:         mutable,
 	}
 
@@ -278,7 +274,7 @@ func add(name string, amount int, category string, description string, mutable b
 	}
 
 	if recurrence == "none" {
-		err := state.DeleteTemplateItem(id)
+		err := state.DeleteTemplateItem(id, false)
 		if err != nil {
 			println(err.Error())
 			os.Exit(1)
@@ -287,7 +283,7 @@ func add(name string, amount int, category string, description string, mutable b
 }
 
 func del(itemId int)  {
-	err := state.DeleteItem(itemId, true)
+	err := state.DeleteItem(itemId)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -341,12 +337,20 @@ func realize(itemId int, amount int) {
 	println("Realized amount of " + strconv.Itoa(amount))
 }
 
-// TODO build out function
 func all() {
-	if state.ConfigExists() {
-		fmt.Printf("CONFIG EXISTS")
-	} else {
-		fmt.Printf("Config does NOT exist!")
+	items, err := state.GetAllActiveItems()
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
+
+	if len(items) == 0 {
+		println("No items to list! Try adding some items with `goex add -n {NAME} -a {AMOUNT}`.\nCheck README for more info.")
+	}
+
+	for _, item := range items {
+		info(item.ID)
 	}
 }
 
@@ -439,7 +443,7 @@ func closeMonth(force bool) {
 		os.Exit(1)
 	}
 
-	if int64(config.MonthEnd) < time.Now().Unix() {
+	if int64(config.MonthEnd) > time.Now().Unix() {
 		println("Error: You cannot close the month until it is over")
 		os.Exit(1)
 	}
@@ -456,18 +460,29 @@ func closeMonth(force bool) {
 	}
 }
 
-// TODO build out this function
 func reset(force bool) {
 	if !force {
-		userConfirms("reset the active month")
+		if !userConfirms("reset the active month") {
+			println("Aborted")
+			os.Exit(0)
+		}
 	}
 
-	// do the function
+	err := state.ResetMonth()
+
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
 }
 
-func showCurrentMonth() int {
-	// return current month for clarity, both printed and in return value. if non-current, ask to close it. ask daily, not every time
-	// json required for this somewhere has current month as string and timestamp as "ask again after"
+func CurrentMonth(showToUser bool) int {
+	now := time.Now()
+
+	if showToUser {
+		println("Current active month is " + now.Month().String() + " " + strconv.Itoa(now.Year()))
+	}
+
 	return int(time.Now().Month())
 }
 
@@ -520,4 +535,12 @@ func Purge() error {
 	}
 
 	return nil
+}
+
+func SuggestMonthClose() {
+	if askUserToClose(true) {
+		closeMonth(true)
+	} else {
+		_ = state.UpdateAskAgainAfter(1)
+	}
 }

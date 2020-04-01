@@ -155,6 +155,10 @@ func generateNewMonth(templates *[]models.Template, newConfig bool) error {
 
 	err := os.RemoveAll(fileLoc)
 
+	if err != nil {
+		return err
+	}
+
 	err = ioutil.WriteFile(fileLoc, []byte("[]"), os.ModePerm)
 
 	if err != nil {

@@ -33,7 +33,7 @@ func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bo
 	}
 
 	if affectTemplate {
-		_ = DeleteTemplateItem(input.ID)
+		_ = DeleteTemplateItem(input.ID, false)
 	}
 	_ = DeleteActiveItem(input.ID)
 

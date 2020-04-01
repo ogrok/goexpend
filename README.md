@@ -43,6 +43,7 @@ Names and categories are user-defined.
     * `goex month` by itself returns the current month, e.g. `2020-04`
     * `goex month close` asks for confirmation and then closes the current month, permanently logging the month and resetting to the current month
     * `goex month reset` asks for confirmation and then resets month value to current and removes all realized values. No logs are created.
+        * all non-recurring items are purged and not logged
         * designed to reset app after a period of non-use, or for testing purposes
 * `goex info` lists details for a specific budget item (by id), e.g. `goex info 4`
 * `goex all` lists all budgeted items with details
