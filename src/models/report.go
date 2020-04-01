@@ -59,10 +59,10 @@ func (r *Report) CalculateColWidths() ReportMaxWidths {
 	return ReportMaxWidths{
 		NameWidth:        nameMax + extraSpace,
 		CategoryWidth:    catMax + extraSpace,
-		DescriptionWidth: descMax, // no extra space bc of wrapping
+		DescriptionWidth: descMax,              // no extra space bc of wrapping
  		AccruedWidth:     AccMax + extraSpace,
 		RealizedWidth:    RealMax + extraSpace,
-		MutableWidth:     1,
+		MutableWidth:     1,                    // always single-character width here
 		SideNoteWidth:    SideMax + extraSpace,
 	}
 }
@@ -71,7 +71,7 @@ func (a *ActiveItem) ToReport() ReportViewItem {
 	var mutableRune rune
 
 	if a.Mutable {
-		mutableRune = 'Y'
+		mutableRune = 'M'
 	} else {
 		mutableRune = ' '
 	}
@@ -89,5 +89,5 @@ func (a *ActiveItem) ToReport() ReportViewItem {
 
 // TODO the logic that does side notes from item context
 func generateSideNote(a *ActiveItem) string {
-	return ""
+
 }

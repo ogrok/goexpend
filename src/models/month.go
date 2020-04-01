@@ -11,11 +11,22 @@ type ActiveItem struct {
 	Name        string  `json:"name"`
 	Category    string  `json:"category"`
 	Description string  `json:"description"`
+	Amount		int     `json:"amount"`
 	Accrued     int     `json:"accrued"`
 	Realized    int     `json:"realized"`
 	Mutable     bool    `json:"mutable"`
+	OneTime		bool	`json:"one_time"`
 }
 
 func (b *ActiveItem) Remaining() int {
 	return b.Accrued - b.Realized
+}
+
+// returns amount of excess from normal amount (manual accrual)
+func (a *ActiveItem) Excess() int {
+	if a.OneTime {
+		return 0
+	} else {
+		return a.Accrued - a.Amount
+	}
 }

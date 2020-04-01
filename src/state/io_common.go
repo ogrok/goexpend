@@ -286,14 +286,3 @@ func GetSpecificActiveItem(id int) (models.ActiveItem, error) {
 
 	return models.ActiveItem{}, errors.New("Item with ID "+strconv.Itoa(id)+" not found")
 }
-
-// returns amount of excess from template accrued amount, e.g. amount of manual accrual at the moment
-func Excess(i *models.ActiveItem) int {
-	template, err := GetSpecificTemplate(i.ID)
-
-	if err != nil {
-		return 0
-	}
-
-	return i.Accrued - template.Amount
-}

@@ -103,6 +103,13 @@ func WriteNewTemplate(item *models.Template, alsoMonthItem bool) (int, error) {
 
 // create new item in active month concurrently with new template
 func WriteNewMonthItem(input *models.Template, realizedAmount int) error {
+
+	oneTime := true
+
+	if input.Recurrence != "none" {
+		oneTime = false
+	}
+
 	monthItem := models.ActiveItem{
 		ID:       input.ID,
 		Name:     input.Name,
@@ -110,6 +117,8 @@ func WriteNewMonthItem(input *models.Template, realizedAmount int) error {
 		Accrued:  input.Amount,
 		Realized: realizedAmount,
 		Mutable:  input.Mutable,
+		Amount:   input.Amount,
+		OneTime:  oneTime,
 	}
 
 	file, err := ioutil.ReadFile(GetActiveDataLoc())
