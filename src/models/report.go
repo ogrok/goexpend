@@ -6,10 +6,14 @@ import "strconv"
 const extraSpace = 1
 
 type Report struct {
-	Items  []ReportViewItem
-	Income int
-	Year   int
-	Month  int
+	Items          []ReportViewItem
+	Income         int
+	Year           int
+	Month          int
+
+	TotalAccrued   int
+	TotalRealized  int
+	TotalRemaining int
 }
 
 type ReportViewItem struct {
@@ -30,6 +34,22 @@ type ReportMaxWidths struct {
 	RealizedWidth    int
 	MutableWidth     int
 	SideNoteWidth    int
+}
+
+func (r *Report) CalculateTotals() {
+	accrued, realized, remaining := 0, 0, 0
+
+	for _, i := range r.Items {
+		a, _ := strconv.Atoi(i.Accrued)
+		accrued += a
+
+		b, _ := strconv.Atoi(i.Realized)
+		realized += b
+
+		remaining += a - b
+	}
+
+	r.TotalAccrued, r.TotalRealized, r.TotalRemaining = accrued, realized, remaining
 }
 
 func (r *Report) CalculateColWidths() ReportMaxWidths {
@@ -87,7 +107,19 @@ func (a *ActiveItem) ToReport() ReportViewItem {
 	}
 }
 
-// TODO the logic that does side notes from item context
+// currently only shows overbudget and extra-accrual comments
 func generateSideNote(a *ActiveItem) string {
+	overspend := a.Realized - a.Accrued
 
+	if overspend > 0 {
+		return strconv.Itoa(overspend) + " over budget"
+	}
+
+	extraAccrual := a.Accrued - a.Amount
+
+	if extraAccrual > 0 {
+		return strconv.Itoa(extraAccrual) + " extra accrued"
+	}
+
+	return ""
 }
