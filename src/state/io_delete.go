@@ -73,9 +73,9 @@ func DeleteTemplateItem(id int, message bool) error {
 	}
 
 	if !deletionOccurred {
-		println("Item " + strconv.Itoa(id) + " not found.")
+		println("Item " + strconv.Itoa(id) + " template not found. Active item deleted.")
 	} else if message {
-		println("Item " + strconv.Itoa(id) + " deleted successfully.")
+		println("Item " + strconv.Itoa(id) + " template and active item deleted successfully.")
 	}
 
 	return nil

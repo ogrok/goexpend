@@ -47,5 +47,7 @@ func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bo
 	}
     _ = WriteNewActiveItemDirectly(&item)
 
+    _ = DeleteActiveItem(0)
+
     return nil
 }
