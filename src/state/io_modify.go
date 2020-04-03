@@ -5,16 +5,15 @@ import (
 )
 
 func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bool) error {
+	var template models.Template
+
+	// it is valid if template does not exist; one-time items do not have them
+	template, _ = GetSpecificTemplate(input.ID)
 	item, err := GetSpecificActiveItem(input.ID)
 
 	if err != nil {
 		return err
 	}
-
-	var template models.Template
-
-	// it is valid if template does not exist; one-time items do not have them
-	template, _ = GetSpecificTemplate(input.ID)
 
 	// update each trait if non-default value was passed
 	if input.Amount != 0 {
@@ -37,6 +36,7 @@ func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bo
 		item.Realized = input.Realized
 	}
 
+	// this entire section below is so unsafe and should not exist in this form wow
 	if affectTemplate {
 		_ = DeleteTemplateItem(input.ID, false)
 	}
@@ -45,7 +45,7 @@ func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bo
 	if affectTemplate {
     	_, _ = WriteNewTemplate(&template, false)
 	}
-    _ = WriteNewMonthItem(&template, item.Realized)
+    _ = WriteNewActiveItemDirectly(&item)
 
     return nil
 }
