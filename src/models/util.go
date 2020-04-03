@@ -16,7 +16,7 @@ type ActiveItemView struct {
 	Description     string
 	CurrentAccrued  int
 	Realized        int
-	Mutable         bool
+	Immutable       bool
 	Amount          int
 	Recurrence      string
 	RecurrenceMonth int

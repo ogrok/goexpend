@@ -47,7 +47,7 @@ func CloseMonth() error {
 			Excess:      item.Excess(),
 			Realized:    item.Realized,
 			Remaining:   item.Remaining(),
-			Mutable:     item.Mutable,
+			Immutable:   item.Immutable,
 		})
 	}
 

@@ -22,7 +22,7 @@ type ReportViewItem struct {
 	Description string
 	Accrued     string
 	Realized    string
-	Mutable     rune
+	Immutable   rune
 	SideNote	string
 }
 
@@ -32,7 +32,7 @@ type ReportMaxWidths struct {
 	DescriptionWidth int
 	AccruedWidth     int
 	RealizedWidth    int
-	MutableWidth     int
+	ImmutableWidth   int
 	SideNoteWidth    int
 }
 
@@ -82,20 +82,20 @@ func (r *Report) CalculateColWidths() ReportMaxWidths {
 		DescriptionWidth: descMax,              // no extra space bc of wrapping
  		AccruedWidth:     AccMax + extraSpace,
 		RealizedWidth:    RealMax + extraSpace,
-		MutableWidth:     1,                    // always single-character width here
+		ImmutableWidth:   1,                    // always single-character width here
 		SideNoteWidth:    SideMax + extraSpace,
 	}
 }
 
 func (w *ReportMaxWidths) TotalWidth() int {
 	return w.AccruedWidth + w.CategoryWidth + w.DescriptionWidth +
-		w.MutableWidth + w.NameWidth + w.RealizedWidth + w.SideNoteWidth
+		w.ImmutableWidth + w.NameWidth + w.RealizedWidth + w.SideNoteWidth
 }
 
 func (a *ActiveItem) ToReport() ReportViewItem {
 	var mutableRune rune
 
-	if a.Mutable {
+	if a.Immutable {
 		mutableRune = 'M'
 	} else {
 		mutableRune = ' '
@@ -107,7 +107,7 @@ func (a *ActiveItem) ToReport() ReportViewItem {
 		Description: a.Description,
 		Accrued:     strconv.Itoa(a.Accrued),
 		Realized:    strconv.Itoa(a.Realized),
-		Mutable:     mutableRune,
+		Immutable:   mutableRune,
 		SideNote:    generateSideNote(a),
 	}
 }

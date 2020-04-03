@@ -15,5 +15,5 @@ type LogItem struct {
 	Excess		int     `json:"excess"` 	   // excess accrued
 	Realized    int     `json:"realized"`
 	Remaining   int     `json:"remaining"`     // accrued - realized
-	Mutable     bool    `json:"mutable"`
+	Immutable   bool    `json:"mutable"`
 }

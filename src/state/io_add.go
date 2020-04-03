@@ -111,14 +111,14 @@ func WriteNewMonthItem(input *models.Template, realizedAmount int) error {
 	}
 
 	monthItem := models.ActiveItem{
-		ID:       input.ID,
-		Name:     input.Name,
-		Category: input.Category,
-		Accrued:  input.Amount,
-		Realized: realizedAmount,
-		Mutable:  input.Mutable,
-		Amount:   input.Amount,
-		OneTime:  oneTime,
+		ID:        input.ID,
+		Name:      input.Name,
+		Category:  input.Category,
+		Accrued:   input.Amount,
+		Realized:  realizedAmount,
+		Immutable: input.Immutable,
+		Amount:    input.Amount,
+		OneTime:   oneTime,
 	}
 
 	file, err := ioutil.ReadFile(GetActiveDataLoc())

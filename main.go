@@ -76,7 +76,7 @@ func main() {
 
 		categoryFlag := addCommand.String("c", "", "Category of new budget item")
 		descriptionFlag := addCommand.String("d", "", "Description of new budget item")
-		mutableFlag := addCommand.Bool("m", true, "Mutability of new budget item")
+		immutableFlag := addCommand.Bool("i", false, "Mutability of new budget item")
 		recurrenceFlag := addCommand.String("r", "monthly", "Recurrence behavior of new budget item")
 
 		err := addCommand.Parse(args[2:])
@@ -91,7 +91,7 @@ func main() {
 				cleanError("Both name and amount required for add command")
 			}
 
-			add(*nameFlag, *amountFlag, *categoryFlag, *descriptionFlag, *mutableFlag, *recurrenceFlag)
+			add(*nameFlag, *amountFlag, *categoryFlag, *descriptionFlag, *immutableFlag, *recurrenceFlag)
 		} else {
 			cleanError("Failed to parse arguments for add command")
 		}
@@ -273,7 +273,7 @@ func main() {
 // shows custom help text if input is invalid
 func cleanError(input string) {
 	fmt.Printf(input + "\n")
-	os.Exit(1)
+	os.Exit(0)
 }
 
 func add(name string, amount int, category string, description string, mutable bool, recurrence string) {
@@ -285,7 +285,7 @@ func add(name string, amount int, category string, description string, mutable b
 		Amount:          amount,
 		Recurrence:      recurrence,
 		RecurrenceMonth: CurrentMonth(false),
-		Mutable:         mutable,
+		Immutable:       mutable,
 	}
 
 	id, err := state.WriteNewTemplate(&newItem, true)
@@ -414,7 +414,7 @@ func info(itemId int) {
 		Description:     activeItem.Description,
 		CurrentAccrued:  activeItem.Accrued,
 		Realized:        activeItem.Realized,
-		Mutable:         activeItem.Mutable,
+		Immutable:       activeItem.Immutable,
 		Amount:          amountToShow,
 		Recurrence:      recurToShow,
 		RecurrenceMonth: monthToShow,
@@ -438,7 +438,7 @@ func info(itemId int) {
 		"\nRegular Amount:      " + strconv.Itoa(viewmodel.Amount) +
 		"\nCurrent Accrual:     " + strconv.Itoa(viewmodel.CurrentAccrued) +
 		"\nRealized / Remains:  " + strconv.Itoa(viewmodel.Realized) + " / " + strconv.Itoa(viewmodel.Remains()) +
-		"\nMutable:             " + strconv.FormatBool(viewmodel.Mutable) +
+		"\nImmutable:           " + strconv.FormatBool(viewmodel.Immutable) +
 		"\nRecurs:              " + recurrenceDesc +
 		"\n")
 }
