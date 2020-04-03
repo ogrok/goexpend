@@ -14,7 +14,7 @@ type ActiveItem struct {
 	Amount		int     `json:"amount"`
 	Accrued     int     `json:"accrued"`
 	Realized    int     `json:"realized"`
-	Immutable   bool    `json:"mutable"`
+	Immutable   bool    `json:"immutable"`
 	OneTime		bool	`json:"one_time"`
 }
 

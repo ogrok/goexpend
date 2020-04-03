@@ -8,5 +8,5 @@ type Template struct {
 	Amount          int     `json:"amount"`
 	Recurrence      string  `json:"recurrence"`
 	RecurrenceMonth int		`json:"recurrence_month"` // 0 if recurrence != yearly, else 1-12
-	Immutable       bool    `json:"mutable"`
+	Immutable       bool    `json:"immutable"`
 }
