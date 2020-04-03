@@ -179,7 +179,8 @@ func main() {
 
 		accrue(int(accrueId), accrueAmt)
 	case "realize": // add to actual amount (or subtract from with negative number)
-		if len(args) != 4 {
+
+		if len(args) < 3 || len(args) > 4 {
 			cleanError("Invalid input")
 		}
 
@@ -189,13 +190,24 @@ func main() {
 			cleanError("Invalid ID")
 		}
 
-		realizeAmt, err := strconv.Atoi(args[3])
+		switch len(args) {
+		case 3:
+			item, err := state.GetSpecificActiveItem(int(realizeId))
 
-		if err != nil {
-			cleanError("Invalid amount")
+			if err != nil {
+				cleanError("Could not fetch full amount to realize")
+			}
+
+			realize(int(realizeId), item.Remaining())
+		case 4:
+			realizeAmt, err := strconv.Atoi(args[3])
+
+			if err != nil {
+				cleanError("Invalid amount")
+			}
+
+			realize(int(realizeId), realizeAmt)
 		}
-
-		realize(int(realizeId), realizeAmt)
 
 	// view and change month state
 	case "month":
