@@ -44,7 +44,7 @@ func CloseMonth() error {
 			Category:    item.Category,
 			Description: item.Description,
 			Accrued:     item.Accrued,
-			Excess:      Excess(&item),
+			Excess:      item.Excess(),
 			Realized:    item.Realized,
 			Remaining:   item.Remaining(),
 			Mutable:     item.Mutable,

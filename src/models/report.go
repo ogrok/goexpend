@@ -87,6 +87,11 @@ func (r *Report) CalculateColWidths() ReportMaxWidths {
 	}
 }
 
+func (w *ReportMaxWidths) TotalWidth() int {
+	return w.AccruedWidth + w.CategoryWidth + w.DescriptionWidth +
+		w.MutableWidth + w.NameWidth + w.RealizedWidth + w.SideNoteWidth
+}
+
 func (a *ActiveItem) ToReport() ReportViewItem {
 	var mutableRune rune
 

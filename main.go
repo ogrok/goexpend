@@ -45,6 +45,8 @@ func main() {
 			println(err.Error())
 			os.Exit(1)
 		}
+
+		os.Exit(0)
 	}
 
 	switch args[1] {
