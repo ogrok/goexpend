@@ -279,6 +279,7 @@ func GetSpecificActiveItem(id int) (models.ActiveItem, error) {
 	}
 
 	for _, v := range all {
+		println(v.ID)
 		if v.ID == id {
 			return v, nil
 		}

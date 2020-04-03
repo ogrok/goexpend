@@ -357,7 +357,7 @@ func realize(itemId int, amount int) {
 	}
 
 	var mod = models.Modification{
-		ID:          itemId,
+		ID:          currentItem.ID,
 		Realized:    currentItem.Realized + amount,
 	}
 
