@@ -11,6 +11,8 @@ The application is intended for monthly budgeting.
 There are three types of expenses: **one-time**, **monthly** and **yearly**. Expenses are categorized into a given **month** and either recur monthly, annually or not at all. Expenses are named and categorized, and have budgeted (accrued) amounts as well as actual (realized) amounts.
 
 Names and categories are user-defined.
+
+All the data is stored as JSON, so your data is truly yours! Parse, export, manipulate as you see fit.
     
 ### Commands
 
