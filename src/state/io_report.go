@@ -52,7 +52,7 @@ func ShowFullReport() error {
 	println(strconv.Itoa(report.TotalRealized) + " / " + strconv.Itoa(report.TotalAccrued) + " realized expenses")
 	println(strconv.Itoa(report.TotalRemaining) + " remaining\n")
 	println("goexpend recommends keeping at least " + strconv.Itoa(bufferAmount) + " in your account.")
-	println("This is " + bufferToView + " times more than the remaining balance.\n")
+	println("This is " + bufferToView + " times the remaining balance.\n")
 
 	return nil
 }

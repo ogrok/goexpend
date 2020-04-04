@@ -24,7 +24,7 @@ Names and categories are user-defined.
     * optional flags:
         * `-c category`
         * `-d description`
-        * `-i immutable` (defaults to false)
+        * `-i immutable` (defaults to false; no argument required)
         * `-r recurrence` (defaults to monthly)
 * `goex delete` - delete budget item with ID passed as argument, e.g. `goex delete 3`
 * `goex modify` - modify budget item with ID and properties passed as flags, e.g. `goex modify 4 -a 24.4`
@@ -52,5 +52,10 @@ Names and categories are user-defined.
 * `goex purge` completely deletes all logs and then executes `goex month reset`, essentially removing all state from the application. 
 
 ## Upcoming Features
-Project is WIP and very little functionality exists. Once above spec is realized, I anticipate implementing the following:
+Project is a work in progress, but the above functionality currently works. Reporting is highly incomplete. I anticipate the following further development:
+* Complete intended reports functionality: robustness, usefulness, summary tables, filtering by category, etc. Specifically:
+    * Creating list of expenses that includes ID
+    * Relating stored income figure to report results
+    * Sort expenses by amount in reports, filter by category, etc.
 * Suggest increase/reduction of variable expenses upon month-end close if they have been high/low for 3+ consecutive months
+    * This will most likely involve income figure and result in a new command such as `goex advice` or something like that
