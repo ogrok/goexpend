@@ -166,6 +166,12 @@ func generateNewMonth(templates *[]models.Template, newConfig bool) error {
 	}
 
 	for _, item := range *templates {
+
+		// skip writing items for yearly items not related to the current month
+		if item.Recurrence == "yearly" && time.Month(item.RecurrenceMonth) != time.Now().Month() {
+			continue
+		}
+
 		err := WriteNewMonthItem(&item, 0)
 
 		if err != nil {
