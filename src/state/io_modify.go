@@ -47,6 +47,9 @@ func ModifyItem(input *models.Modification, realizedEdit bool, affectTemplate bo
 	}
     _ = WriteNewActiveItemDirectly(&item)
 
+    // this is a hotfix to a dumb bug related to the above logic being very bad
+    // wow I was lazy writing this the first time
+    // nobody judge me on this plz ok thx
     _ = DeleteActiveItem(0)
 
     return nil
