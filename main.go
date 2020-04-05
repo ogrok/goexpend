@@ -28,11 +28,11 @@ func main() {
 		}
 	}
 
-	// then check config for whether we are past AskAgainAt
+	// then check config for whether we are past AskAgainAt and prompt user to close if so
 	config, _ := state.GetConfig()
 
 	if time.Now().Unix() > int64(config.AskAgainAfter) && args[1] != "purge" && args[1] != "month" {
-		SuggestMonthClose()
+		suggestMonthClose()
 	}
 
 	// then begin processing input
@@ -91,7 +91,18 @@ func main() {
 				cleanError("Both name and amount required for add command")
 			}
 
-			add(*nameFlag, *amountFlag, *categoryFlag, *descriptionFlag, *immutableFlag, *recurrenceFlag)
+			newItem := models.Template{
+				ID:              0,
+				Name:            *nameFlag,
+				Category:        *categoryFlag,
+				Description:     *descriptionFlag,
+				Amount:          *amountFlag,
+				Recurrence:      *recurrenceFlag,
+				RecurrenceMonth: currentMonth(false),
+				Immutable:       *immutableFlag,
+			}
+
+			add(&newItem)
 		} else {
 			cleanError("Failed to parse arguments for add command")
 		}
@@ -212,7 +223,7 @@ func main() {
 	// view and change month state
 	case "month":
 		if len(args) == 2 {
-			_ = CurrentMonth(true)
+			_ = currentMonth(true)
 			os.Exit(0)
 		}
 
@@ -266,14 +277,14 @@ func main() {
 
 	case "purge": // remove all data then run init
 		if userConfirms("remove all data and reset goexpend") {
-			err := Purge()
+			err := purge()
 
 			if err != nil {
 				fmt.Printf(err.Error())
 				os.Exit(1)
 			}
 		} else {
-			fmt.Printf("Purge aborted")
+			fmt.Printf("purge aborted")
 		}
 
 	default:
@@ -288,26 +299,16 @@ func cleanError(input string) {
 	os.Exit(0)
 }
 
-func add(name string, amount int, category string, description string, mutable bool, recurrence string) {
-	newItem := models.Template{
-		ID:              0,
-		Name:            name,
-		Category:        category,
-		Description:     description,
-		Amount:          amount,
-		Recurrence:      recurrence,
-		RecurrenceMonth: CurrentMonth(false),
-		Immutable:       mutable,
-	}
+func add(newItem *models.Template) {
 
-	id, err := state.WriteNewTemplate(&newItem, true)
+	id, err := state.WriteNewTemplate(newItem, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
 		os.Exit(1)
 	}
 
-	if recurrence == "none" {
+	if newItem.Recurrence == "none" {
 		err := state.DeleteTemplateItem(id, false)
 		if err != nil {
 			println(err.Error())
@@ -516,7 +517,7 @@ func income(income int) {
 	println("Income updated to " + strconv.Itoa(income))
 }
 
-func CurrentMonth(showToUser bool) int {
+func currentMonth(showToUser bool) int {
 	now := time.Now()
 
 	if showToUser {
@@ -524,6 +525,25 @@ func CurrentMonth(showToUser bool) int {
 	}
 
 	return int(time.Now().Month())
+}
+
+func purge() error {
+	dir := state.GetDir()
+
+	err := os.RemoveAll(dir)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("purge complete. Rerunning init...")
+	err = state.Initialize()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func userConfirms(operation string) bool {
@@ -558,26 +578,7 @@ func askUserToClose(summary bool) bool {
 	return false
 }
 
-func Purge() error {
-	dir := state.GetDir()
-
-	err := os.RemoveAll(dir)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Purge complete. Rerunning init...")
-	err = state.Initialize()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func SuggestMonthClose() {
+func suggestMonthClose() {
 	if askUserToClose(true) {
 		closeMonth(true)
 	} else {
