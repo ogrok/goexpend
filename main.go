@@ -50,30 +50,31 @@ func main() {
 	}
 
 	switch args[1] {
-	// affecting config
-	case "init":
-		err := state.Initialize()
+	case "accrue": // add to accrued amount (or subtract from with negative number)
+		if len(args) != 4 {
+			cleanError("Invalid input")
+		}
+
+		accrueId, err := strconv.ParseInt(args[2], 10, 0)
 
 		if err != nil {
-			fmt.Printf(err.Error() + "\n")
-			os.Exit(1)
-		}
-	case "income":
-		if len(args) != 3 {
-			println("Invalid input; please provide number only")
-			os.Exit(1)
+			cleanError("Invalid ID")
 		}
 
-		intIncome, _ := strconv.Atoi(args[2])
+		accrueAmt, err := strconv.Atoi(args[3])
 
-		income(intIncome)
+		if err != nil {
+			cleanError("Invalid amount")
+		}
 
-	// adding and removing entire budget items
+		accrue(int(accrueId), accrueAmt)
 	case "add": // add new budget item
+
+		// first grab all the flags
 		addCommand := flag.NewFlagSet("add", flag.ExitOnError)
+
 		nameFlag := addCommand.String("n", "", "Name of new budget item")
 		amountFlag := addCommand.Int("a", 0.0, "Amount of new budget item")
-
 		categoryFlag := addCommand.String("c", "", "Category of new budget item")
 		descriptionFlag := addCommand.String("d", "", "Description of new budget item")
 		immutableFlag := addCommand.Bool("i", false, "Mutability of new budget item")
@@ -106,7 +107,11 @@ func main() {
 		} else {
 			cleanError("Failed to parse arguments for add command")
 		}
-
+	case "all": // list all budget items (name, amount, realized amount, category)
+		if len(args) != 2 {
+			cleanError("No arguments allowed in all command")
+		}
+		all()
 	case "delete": // delete budget item
 		if len(args) != 3 {
 			cleanError("Invalid input")
@@ -119,8 +124,34 @@ func main() {
 		}
 
 		del(int(deleteId))
+	case "income":
+		if len(args) != 3 {
+			println("Invalid input; please provide number only")
+			os.Exit(1)
+		}
 
-	// change state of existing budget items
+		intIncome, _ := strconv.Atoi(args[2])
+
+		income(intIncome)
+	case "info": // list info for one specific budget item
+		if len(args) != 3 {
+			cleanError("No flags allowed in info command")
+		}
+
+		infoId, err := strconv.ParseInt(args[2], 10, 0)
+
+		if err != nil {
+			cleanError("Invalid ID")
+		}
+
+		info(int(infoId))
+	case "init":
+		err := state.Initialize()
+
+		if err != nil {
+			fmt.Printf(err.Error() + "\n")
+			os.Exit(1)
+		}
 	case "modify": // edit accrued amount
 		if len(args) < 4 {
 			cleanError("No modifications specified")
@@ -170,25 +201,40 @@ func main() {
 		} else {
 			cleanError("Failed to parse arguments for modify command")
 		}
-
-	case "accrue": // add to accrued amount (or subtract from with negative number)
-		if len(args) != 4 {
-			cleanError("Invalid input")
+	case "month":
+		if len(args) == 2 {
+			_ = currentMonth(true)
+			os.Exit(0)
 		}
 
-		accrueId, err := strconv.ParseInt(args[2], 10, 0)
-
-		if err != nil {
-			cleanError("Invalid ID")
+		// sub-switch
+		switch args[2] {
+		case "close": // close current month, permanently logging it
+			if len(args) > 3 && args[3] == "-f" {
+				closeMonth(true)
+			} else {
+				closeMonth(false)
+			}
+		case "reset": // reset current month (set all realized values in current month to zero)
+			if len(args) > 3 && args[3] == "-f" {
+				reset(true)
+			} else {
+				reset(false)
+			}
+		default:
+			cleanError("Invalid command")
 		}
+	case "purge": // remove all data then run init
+		if userConfirms("remove all data and reset goexpend") {
+			err := purge()
 
-		accrueAmt, err := strconv.Atoi(args[3])
-
-		if err != nil {
-			cleanError("Invalid amount")
+			if err != nil {
+				fmt.Printf(err.Error())
+				os.Exit(1)
+			}
+		} else {
+			fmt.Printf("purge aborted")
 		}
-
-		accrue(int(accrueId), accrueAmt)
 	case "realize": // add to actual amount (or subtract from with negative number)
 
 		if len(args) < 3 || len(args) > 4 {
@@ -219,51 +265,6 @@ func main() {
 
 			realize(int(realizeId), realizeAmt)
 		}
-
-	// view and change month state
-	case "month":
-		if len(args) == 2 {
-			_ = currentMonth(true)
-			os.Exit(0)
-		}
-
-		// sub-switch on
-		switch args[2] {
-		case "close": // close current month, permanently logging it
-			if len(args) > 3 && args[3] == "-f" {
-				closeMonth(true)
-			} else {
-				closeMonth(false)
-			}
-		case "reset": // reset current month (set all realized values in current month to zero)
-			if len(args) > 3 && args[3] == "-f" {
-				reset(true)
-			} else {
-				reset(false)
-			}
-		default:
-			cleanError("Invalid command")
-		}
-
-	// reports and viewing
-	case "info": // list info for one specific budget item
-		if len(args) != 3 {
-			cleanError("No flags allowed in info command")
-		}
-
-		infoId, err := strconv.ParseInt(args[2], 10, 0)
-
-		if err != nil {
-			cleanError("Invalid ID")
-		}
-
-		info(int(infoId))
-
-	case "all": // list all budget items (name, amount, realized amount, category)
-		if len(args) != 2 {
-			cleanError("No arguments allowed in all command")
-		}
-		all()
 	case "report": // run report intended for viewing, on the current month
 		if len(args) != 2 {
 			cleanError("no arguments allowed in report command")
@@ -274,25 +275,13 @@ func main() {
 			println(err.Error())
 			os.Exit(1)
 		}
-
-	case "purge": // remove all data then run init
-		if userConfirms("remove all data and reset goexpend") {
-			err := purge()
-
-			if err != nil {
-				fmt.Printf(err.Error())
-				os.Exit(1)
-			}
-		} else {
-			fmt.Printf("purge aborted")
-		}
-
 	default:
 		cleanError("Invalid command")
 	}
+
+	os.Exit(0)
 }
 
-// TODO fill in this help text with stuff related to its locations in the code
 // shows custom help text if input is invalid
 func cleanError(input string) {
 	fmt.Printf(input + "\n")
