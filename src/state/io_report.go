@@ -63,7 +63,6 @@ func ShowFullReport() error {
 			remainingTotal += intRemains
 		}
 	}
-	println("\ntotal remaining: "+ strconv.Itoa(remainingTotal))
 
 	return nil
 }
