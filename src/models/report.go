@@ -22,6 +22,7 @@ type ReportViewItem struct {
 	Description string
 	Accrued     string
 	Realized    string
+	Remaining   string
 	Immutable   rune
 	SideNote	string
 }
@@ -32,6 +33,7 @@ type ReportMaxWidths struct {
 	DescriptionWidth int
 	AccruedWidth     int
 	RealizedWidth    int
+	RemainingWidth   int
 	ImmutableWidth   int
 	SideNoteWidth    int
 }
@@ -107,6 +109,7 @@ func (a *ActiveItem) ToReport() ReportViewItem {
 		Description: a.Description,
 		Accrued:     strconv.Itoa(a.Accrued),
 		Realized:    strconv.Itoa(a.Realized),
+		Remaining:   strconv.Itoa(a.Accrued - a.Realized),
 		Immutable:   mutableRune,
 		SideNote:    generateSideNote(a),
 	}

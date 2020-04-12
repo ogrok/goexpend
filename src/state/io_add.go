@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func WriteNewTemplate(item *models.Template, alsoMonthItem bool) (int, error) {
+func WriteNewTemplat(item *models.Template, alsoMonthItem bool) (int, error) {
 	// first validate recurrence input
 	if item.Recurrence != "yearly" {
 		item.RecurrenceMonth = 0
@@ -62,7 +62,7 @@ func WriteNewTemplate(item *models.Template, alsoMonthItem bool) (int, error) {
 		for k, v := range templates {
 			for a, b := range templates {
 				if a != k && v.ID == b.ID {
-					return -1, errors.New("ID conflict ("+string(v.ID)+"). No new item created")
+					return -1, errors.New("ID conflict (" + string(v.ID) + "). No new item created")
 				}
 			}
 		}
@@ -151,7 +151,7 @@ func WriteNewMonthItem(input *models.Template, realizedAmount int) error {
 		for k, v := range activeItems {
 			for a, b := range activeItems {
 				if a != k && v.ID == b.ID {
-					return errors.New("ID conflict ("+string(v.ID)+"). No new item created")
+					return errors.New("ID conflict (" + string(v.ID) + "). No new item created")
 				}
 			}
 		}
@@ -209,7 +209,7 @@ func WriteNewActiveItemDirectly(a *models.ActiveItem) error {
 		for k, v := range activeItems {
 			for a, b := range activeItems {
 				if a != k && v.ID == b.ID {
-					return errors.New("ID conflict ("+string(v.ID)+"). No new item created")
+					return errors.New("ID conflict (" + string(v.ID) + "). No new item created")
 				}
 			}
 		}

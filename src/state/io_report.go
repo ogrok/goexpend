@@ -54,5 +54,16 @@ func ShowFullReport() error {
 	println("goexpend recommends keeping at least " + strconv.Itoa(bufferAmount) + " in your account.")
 	println("This is " + bufferToView + " times the remaining balance.\n")
 
+	// TODO consider replacing this below block with detail table above final summary (prior todo item)?
+	var remainingTotal int
+	for _, v := range report.Items {
+		if v.Accrued > v.Realized {
+			println(v.Name + ": " + v.Remaining + " left")
+			intRemains, _ := strconv.Atoi(v.Remaining)
+			remainingTotal += intRemains
+		}
+	}
+	println("\ntotal remaining: "+ strconv.Itoa(remainingTotal))
+
 	return nil
 }

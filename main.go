@@ -290,7 +290,7 @@ func cleanError(input string) {
 
 func add(newItem *models.Template) {
 
-	id, err := state.WriteNewTemplate(newItem, true)
+	id, err := state.WriteNewTemplat(newItem, true)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -306,7 +306,7 @@ func add(newItem *models.Template) {
 	}
 }
 
-func del(itemId int)  {
+func del(itemId int) {
 	err := state.DeleteItem(itemId)
 
 	if err != nil {
@@ -324,8 +324,8 @@ func accrue(itemId int, amount int) {
 	}
 
 	var mod = models.Modification{
-		ID:          itemId,
-		Amount:      currentItem.Accrued + amount,
+		ID:     itemId,
+		Amount: currentItem.Accrued + amount,
 	}
 
 	err = state.ModifyItem(&mod, false, false)
@@ -347,8 +347,8 @@ func realize(itemId int, amount int) {
 	}
 
 	var mod = models.Modification{
-		ID:          currentItem.ID,
-		Realized:    currentItem.Realized + amount,
+		ID:       currentItem.ID,
+		Realized: currentItem.Realized + amount,
 	}
 
 	err = state.ModifyItem(&mod, true, false)
@@ -432,7 +432,7 @@ func info(itemId int) {
 		recurrenceDesc = "none"
 	}
 
-	fmt.Printf(""+
+	fmt.Printf("" +
 		"\nName:                " + viewmodel.Name +
 		"\nID:                  " + strconv.Itoa(viewmodel.ID) +
 		"\nCategory:            " + viewmodel.Category +
@@ -558,7 +558,7 @@ func askUserToClose(summary bool) bool {
 				strconv.Itoa(config.CurrentYear) + ".")
 		}
 	}
-	fmt.Print("Would you like to close the old month and open the budget for the month of "+ time.Now().Month().String() +"? [Y/n] ")
+	fmt.Print("Would you like to close the old month and open the budget for the month of " + time.Now().Month().String() + "? [Y/n] ")
 	text, _ := reader.ReadString('\n')
 	if strings.ToUpper(strings.TrimSpace(text)) == "Y" {
 		return true
