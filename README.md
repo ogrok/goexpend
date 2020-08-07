@@ -2,6 +2,10 @@
 
 cli budget manager focused on regular expense planning
 
+## Disclaimer
+
+This was mostly done in one weekend a few months ago and it's not all _that_ pretty. At some point I may clean this up and add reporting functionality for my own use.
+
 ## Usage
 
 The application is intended for monthly budgeting.
